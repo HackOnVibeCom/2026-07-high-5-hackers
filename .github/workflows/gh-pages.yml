@@ -5,7 +5,8 @@
 # gracefully to its built-in defaults. The full product (frontend + edge API)
 # deploys to Cloudflare Pages via deploy.yml — treat that as the primary URL.
 #
-# One-time setup: repo Settings → Pages → Source = "GitHub Actions".
+# The configure-pages step below auto-enables Pages (Source = GitHub Actions)
+# on first run; no manual repo-settings step should be needed.
 name: Deploy to GitHub Pages
 on:
   push:
@@ -26,6 +27,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Enable & configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
