@@ -14,3 +14,4 @@
 * 2026-07-12 23:58:37 - docs: note on testing mobile view responsiveness
 * 2026-07-12 23:58:40 - docs: note on error boundaries in dashboard cards
 * 2026-07-12 23:58:44 - docs: note on telemetry and monitoring setup
+* 2026-07-12 23:58:47 - docs: note on deploying edge functions locally
