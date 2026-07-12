@@ -48,7 +48,7 @@ function Interactive3DScene() {
 
   return (
     <div
-      className="perspective-container relative h-[560px] w-full max-w-[560px]"
+      className="perspective-container stay-dark relative h-[560px] w-full max-w-[560px]"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -310,7 +310,7 @@ function Home() {
      ═══════════════════════════════════════════════════════════ */
   if (!onboarded) {
     return (
-      <div className="relative -mx-6 -mt-6 overflow-hidden">
+      <div className="landing-board relative -mx-6 -mt-6 overflow-hidden">
         {/* ── Ambient Background Effects ── */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-amber-500/8 blur-[120px]" />

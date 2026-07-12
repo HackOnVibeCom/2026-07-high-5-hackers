@@ -5,7 +5,7 @@
 // (.github/workflows/deploy.yml) publishes the first of dist / build / out /
 // .output/public that contains an index.html. So we copy dist/client/* into out/
 // and rename _shell.html -> index.html. Result: out/index.html, ready to deploy.
-import { existsSync, rmSync, mkdirSync, cpSync, renameSync } from "node:fs";
+import { existsSync, rmSync, mkdirSync, cpSync, renameSync, copyFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,4 +25,8 @@ mkdirSync(outDir, { recursive: true });
 cpSync(clientDir, outDir, { recursive: true });
 renameSync(join(outDir, "_shell.html"), join(outDir, "index.html"));
 
-console.log("[make-static] wrote static site to out/ (index.html ready for deploy)");
+// GitHub Pages has no _redirects support — it serves 404.html for unknown paths,
+// so a copy of the SPA shell keeps client-side routing working there too.
+copyFileSync(join(outDir, "index.html"), join(outDir, "404.html"));
+
+console.log("[make-static] wrote static site to out/ (index.html + 404.html ready for deploy)");

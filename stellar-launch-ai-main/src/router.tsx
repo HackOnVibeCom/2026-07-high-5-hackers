@@ -10,6 +10,9 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // Follows Vite's `base` so the SPA also works when hosted under a
+    // sub-path (e.g. GitHub Pages project sites). "/" in normal deploys.
+    basepath: import.meta.env.BASE_URL,
   });
 
   return router;

@@ -19,6 +19,9 @@ export default defineConfig({
     spa: { enabled: true },
   },
   vite: {
+    // "/" everywhere except sub-path hosts (GitHub Pages project sites set
+    // PUBLIC_BASE_PATH="/<repo>/" in .github/workflows/gh-pages.yml).
+    base: process.env.PUBLIC_BASE_PATH || "/",
     server: {
       proxy: {
         "/api": {
