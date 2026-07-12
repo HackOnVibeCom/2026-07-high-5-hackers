@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bot, Send, X, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useApp, type AssistantMessage } from "../../lib/store";
+import { useApp, useActiveWorkspace, type AssistantMessage } from "../../lib/store";
 
 type Msg = AssistantMessage;
 
@@ -38,6 +38,7 @@ const suggestionsFor = (ctx: string): string[] => {
   }
 };
 
+// Offline fallback if /api/assistant is unreachable (e.g. api server down).
 const canned = (q: string, ctx: string): Msg => {
   if (/reddit|post/i.test(q))
     return {
@@ -67,6 +68,7 @@ const canned = (q: string, ctx: string): Msg => {
 export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const ctx = contextLabel(path);
+  const ws = useActiveWorkspace();
   const stored = useApp((s) => s.assistantMessages);
   const setStored = useApp((s) => s.setAssistantMessages);
   const messages = stored.length ? stored : [WELCOME];
@@ -78,16 +80,33 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
     if (open) endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking, open]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
     const base = stored.length ? stored : [WELCOME];
     setStored([...base, { role: "user", text }]);
     setInput("");
     setThinking(true);
-    setTimeout(() => {
-      setStored([...base, { role: "user", text }, canned(text, ctx)]);
-      setThinking(false);
-    }, 900);
+    let reply: Msg;
+    try {
+      const res = await fetch("/api/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: text,
+          screen: ctx,
+          app: { name: ws.name, category: ws.category, description: ws.description },
+          history: base.slice(-6).map((m) => ({ role: m.role, text: m.text })),
+        }),
+      });
+      if (!res.ok) throw new Error(`assistant ${res.status}`);
+      const data: { text: string; action?: { label: string; to: string } | null } =
+        await res.json();
+      reply = { role: "ai", text: data.text, action: data.action ?? undefined };
+    } catch {
+      reply = canned(text, ctx);
+    }
+    setStored([...base, { role: "user", text }, reply]);
+    setThinking(false);
   };
 
   const reset = () => setStored([]);
