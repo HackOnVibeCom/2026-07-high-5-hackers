@@ -19,6 +19,7 @@
   --color-neutral-700: #464B53;
   --color-neutral-800: #2F3237;
   --color-neutral-900: #17191C;
+  --color-neutral-950: #0A0B0D;
 
   --color-amber-50: #FBF3E7;
   --color-amber-100: #F5E4C6;
@@ -102,10 +103,54 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ---------------------------------------------------------------- */
+/* Semantic tokens — light (default)                                 */
+/* ---------------------------------------------------------------- */
 :root {
+  --background: #FAFAFA;
+  --foreground: #17191C;
+  --card: #FFFFFF;
+  --card-foreground: #17191C;
+  --popover: #FFFFFF;
+  --popover-foreground: #17191C;
+  --primary: #DE8C21;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F2F3;
+  --secondary-foreground: #17191C;
+  --muted: #F1F2F3;
+  --muted-foreground: #5E646E;
+  --accent: #F1F2F3;
+  --accent-foreground: #17191C;
+  --destructive: #BF4057;
+  --destructive-foreground: #FFFFFF;
+  --border: #E3E5E8;
+  --input: #E3E5E8;
+  --ring: #DE8C21;
+  --sidebar: #FAFAFA;
+  --sidebar-foreground: #17191C;
+  --sidebar-primary: #DE8C21;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F1F2F3;
+  --sidebar-accent-foreground: #17191C;
+  --sidebar-border: #E3E5E8;
+  --sidebar-ring: #DE8C21;
+
+  /* Recharts chrome (see src/lib/chart-theme.ts) */
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-axis: #7B828E;
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.97);
+  --chart-tooltip-fg: #17191C;
+  --chart-tooltip-border: #E3E5E8;
+  --chart-dot-stroke: #FFFFFF;
+}
+
+/* ---------------------------------------------------------------- */
+/* Semantic tokens — dark (html.dark)                                */
+/* ---------------------------------------------------------------- */
+.dark {
   --background: #030712; /* Deep Slate 950 */
   --foreground: #F3F4F6; /* Gray 100 */
-  --card: #0b0f19;       /* Dark Card */
+  --card: #0b0f19;
   --card-foreground: #F3F4F6;
   --popover: #0b0f19;
   --popover-foreground: #F3F4F6;
@@ -130,19 +175,31 @@
   --sidebar-accent-foreground: #F3F4F6;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #DE8C21;
+
+  /* Recharts chrome (see src/lib/chart-theme.ts) */
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-axis: #6B7280;
+  --chart-tooltip-bg: rgba(11, 15, 25, 0.95);
+  --chart-tooltip-fg: #F3F4F6;
+  --chart-tooltip-border: rgba(255, 255, 255, 0.08);
+  --chart-dot-stroke: rgba(11, 15, 25, 0.8);
 }
 
 @layer base {
-  * {
-    border-color: rgba(255, 255, 255, 0.08) !important;
-  }
-  html, body {
-    background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #030712 70%) !important;
-    background-attachment: fixed !important;
-    color: #F3F4F6 !important;
+  html,
+  body {
+    background: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  html.dark,
+  html.dark body {
+    background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #030712 70%);
+    background-attachment: fixed;
+    color: #F3F4F6;
   }
   .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
   .font-mono { font-family: var(--font-mono); }
@@ -166,17 +223,28 @@
   visibility: hidden !important;
 }
 
-/* Premium Dark Mode Glassmorphism Overrides */
+/* ---------------------------------------------------------------- */
+/* Dark mode glassmorphism skin                                      */
+/*                                                                    */
+/* The screens are authored with light utility classes (bg-white,    */
+/* text-neutral-900, …). In dark mode this sheet re-skins those      */
+/* utilities into the glass look. Everything here MUST stay scoped   */
+/* under .dark so light mode renders the original design untouched.  */
+/* ---------------------------------------------------------------- */
+
+.dark * {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
 
 /* text color overrides */
-.text-neutral-900 { color: #F3F4F6 !important; }
-.text-neutral-800 { color: #E5E7EB !important; }
-.text-neutral-700 { color: #D1D5DB !important; }
-.text-neutral-600 { color: #9CA3AF !important; }
-.text-neutral-500 { color: #6B7280 !important; }
+.dark .text-neutral-900 { color: #F3F4F6 !important; }
+.dark .text-neutral-800 { color: #E5E7EB !important; }
+.dark .text-neutral-700 { color: #D1D5DB !important; }
+.dark .text-neutral-600 { color: #9CA3AF !important; }
+.dark .text-neutral-500 { color: #6B7280 !important; }
 
 /* background & card overrides */
-.bg-white {
+.dark .bg-white {
   background-color: rgba(11, 15, 25, 0.6) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -184,118 +252,182 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-.bg-white:hover {
+.dark .bg-white:hover {
   border-color: rgba(222, 140, 33, 0.3) !important;
   box-shadow: 0 0 25px rgba(222, 140, 33, 0.08), 0 4px 30px rgba(0, 0, 0, 0.2) !important;
   transform: translateY(-2px);
 }
 
-.bg-neutral-50 {
+.dark .bg-neutral-50 {
   background-color: #030712 !important;
 }
 
-.bg-neutral-50\/85 {
+/* Translucent white badges inside tinted cards — soften on dark. */
+.dark .bg-white\/80 { background-color: rgba(255, 255, 255, 0.12) !important; }
+.dark .bg-white\/60 { background-color: rgba(255, 255, 255, 0.08) !important; }
+
+.dark .bg-neutral-50\/85 {
   background-color: rgba(3, 7, 18, 0.8) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-.bg-neutral-100 {
+.dark .bg-neutral-100 {
   background-color: rgba(255, 255, 255, 0.05) !important;
   color: #E5E7EB !important;
 }
 
-.border-neutral-200 {
+.dark .border-neutral-200 {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Hover effects */
-.hover\:border-neutral-300:hover {
+.dark .hover\:border-neutral-300:hover {
   border-color: rgba(222, 140, 33, 0.4) !important;
 }
-.hover\:bg-neutral-100:hover {
+.dark .hover\:bg-neutral-100:hover {
   background-color: rgba(255, 255, 255, 0.08) !important;
 }
-.hover\:bg-neutral-50:hover {
+.dark .hover\:bg-neutral-50:hover {
   background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
 /* Glow tones for alerts and cards */
-.bg-teal-50 {
+.dark .bg-teal-50 {
   background-color: rgba(38, 173, 135, 0.06) !important;
 }
-.border-teal-200 {
+.dark .border-teal-200 {
   border-color: rgba(38, 173, 135, 0.3) !important;
 }
-.text-teal-800 {
+.dark .text-teal-800 {
   color: #34d399 !important;
 }
-.bg-teal-100 {
+.dark .bg-teal-100 {
   background-color: rgba(38, 173, 135, 0.15) !important;
   color: #34d399 !important;
 }
-.text-teal-700 {
+.dark .text-teal-700 {
   color: #34d399 !important;
 }
-.bg-teal-50 {
-  background-color: rgba(38, 173, 135, 0.06) !important;
-}
 
-.bg-amber-50 {
+.dark .bg-amber-50 {
   background-color: rgba(222, 140, 33, 0.06) !important;
 }
-.border-amber-200 {
+.dark .border-amber-200 {
   border-color: rgba(222, 140, 33, 0.3) !important;
 }
-.text-amber-800 {
+.dark .text-amber-800 {
   color: #fbbf24 !important;
 }
-.text-amber-900 {
+.dark .text-amber-900 {
   color: #fcd34d !important;
 }
-.bg-amber-100 {
+.dark .bg-amber-100 {
   background-color: rgba(222, 140, 33, 0.15) !important;
   color: #fbbf24 !important;
 }
 
-.bg-rose-50 {
+.dark .bg-rose-50 {
   background-color: rgba(191, 64, 87, 0.06) !important;
 }
-.border-rose-200 {
+.dark .border-rose-200 {
   border-color: rgba(191, 64, 87, 0.3) !important;
 }
-.text-rose-800 {
+.dark .text-rose-800 {
   color: #f87171 !important;
 }
-.bg-rose-100 {
+.dark .bg-rose-100 {
   background-color: rgba(191, 64, 87, 0.15) !important;
   color: #f87171 !important;
 }
 
-.bg-blue-50 {
+.dark .bg-blue-50 {
   background-color: rgba(53, 100, 202, 0.06) !important;
 }
-.border-blue-200 {
+.dark .border-blue-200 {
   border-color: rgba(53, 100, 202, 0.3) !important;
 }
-.text-blue-800 {
+.dark .text-blue-800 {
   color: #60a5fa !important;
 }
-.bg-blue-100 {
+.dark .bg-blue-100 {
   background-color: rgba(53, 100, 202, 0.15) !important;
   color: #60a5fa !important;
 }
 
 /* Inputs and Forms */
-input, textarea, select {
+.dark input,
+.dark textarea,
+.dark select {
   background-color: rgba(0, 0, 0, 0.2) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #F3F4F6 !important;
 }
-input:focus, textarea:focus, select:focus {
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
   border-color: #DE8C21 !important;
   outline: none !important;
   box-shadow: 0 0 10px rgba(222, 140, 33, 0.2) !important;
 }
+
+/* ---------------------------------------------------------------- */
+/* Light mode re-skin for dark-flavored utilities                    */
+/*                                                                    */
+/* Several screens (landing, analytics, discover) were authored on   */
+/* the dark glass look with translucent-white utilities. In light    */
+/* mode those become invisible, so remap them to dark-on-light       */
+/* equivalents here. Scoped to html:not(.dark) only.                 */
+/* ---------------------------------------------------------------- */
+
+html:not(.dark) .bg-white\/5 { background-color: rgba(0, 0, 0, 0.03) !important; }
+html:not(.dark) .bg-white\/10 { background-color: rgba(0, 0, 0, 0.05) !important; }
+html:not(.dark) .border-white\/5 { border-color: rgba(0, 0, 0, 0.06) !important; }
+html:not(.dark) .border-white\/8 { border-color: rgba(0, 0, 0, 0.08) !important; }
+html:not(.dark) .border-white\/10 { border-color: rgba(0, 0, 0, 0.1) !important; }
+html:not(.dark) .text-white\/5 { color: rgba(0, 0, 0, 0.05) !important; }
+
+/* Amber accents tuned for light backgrounds (WCAG-contrast amber-700/600). */
+html:not(.dark) .text-amber-300 { color: #BB761C !important; }
+html:not(.dark) .text-amber-400 { color: #935D18 !important; }
+
+/* Light neutral text that would wash out on light backgrounds. */
+html:not(.dark) .text-neutral-300 { color: #5E646E !important; }
+html:not(.dark) .text-neutral-400 { color: #7B828E !important; }
+
+/* Dark chips/pills sit almost invisible on dark glass cards — lift them. */
+.dark .bg-neutral-900 { background-color: #1f2937 !important; }
+
+/* ---------------------------------------------------------------- */
+/* Landing board (pre-onboarding homescreen) — light mode remap      */
+/*                                                                    */
+/* The hero/features/CTA sections are authored dark-first with       */
+/* text-white headings and translucent-white fills. Remap them to    */
+/* readable dark-on-light here. The `stay-dark` subtree (the 3D      */
+/* dashboard showcase) keeps its own dark slate cards in both        */
+/* themes, and solid amber buttons keep white labels.                */
+/* ---------------------------------------------------------------- */
+
+html:not(.dark) .landing-board .text-white { color: #17191C !important; }
+html:not(.dark) .landing-board button.text-white { color: #FFFFFF !important; }
+html:not(.dark) .landing-board .bg-white\/\[0\.02\] { background-color: rgba(0, 0, 0, 0.02) !important; }
+html:not(.dark) .landing-board .bg-white\/\[0\.03\] { background-color: rgba(0, 0, 0, 0.03) !important; }
+html:not(.dark) .landing-board .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(0, 0, 0, 0.05) !important; }
+
+/* Gradient headline text: darken the stops so it reads on light. */
+html:not(.dark) .landing-board .from-amber-400 { --tw-gradient-from: #935D18; }
+html:not(.dark) .landing-board .via-amber-300 { --tw-gradient-via: #BB761C; }
+html:not(.dark) .landing-board .to-yellow-200 { --tw-gradient-to: #DE8C21; }
+html:not(.dark) .landing-board .from-teal-400 { --tw-gradient-from: #1E7A5F; }
+html:not(.dark) .landing-board .to-emerald-300 { --tw-gradient-to: #26AD87; }
+
+/* The 3D showcase keeps its dark composition in light mode. */
+html:not(.dark) .landing-board .stay-dark .text-white { color: #FFFFFF !important; }
+html:not(.dark) .landing-board .stay-dark .text-neutral-300 { color: #CDD0D5 !important; }
+html:not(.dark) .landing-board .stay-dark .text-neutral-400 { color: #A7ACB4 !important; }
+html:not(.dark) .landing-board .stay-dark .text-neutral-500 { color: #7B828E !important; }
+html:not(.dark) .landing-board .stay-dark .bg-white\/5 { background-color: rgba(255, 255, 255, 0.05) !important; }
+html:not(.dark) .landing-board .stay-dark .border-white\/5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+html:not(.dark) .landing-board .stay-dark .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
 
 /* Extra micro-animations for standard UI/UX */
 .transition-all {
