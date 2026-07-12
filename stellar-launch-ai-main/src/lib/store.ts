@@ -36,6 +36,13 @@ export type Campaign = {
   spark: number[];
   audience?: string;
   asset?: string;
+  impressions?: number;
+  ctr?: number;
+  cpi?: number;
+  cpc?: number;
+  expectedRoi?: string;
+  risk?: "Low" | "Medium" | "High";
+  platformsDetail?: Record<string, { status: string; budget: number; installs: number }>;
 };
 
 export type Notification = {
@@ -139,6 +146,7 @@ type State = {
   applyRecommendation: (id: string) => void;
   ignoreRecommendation: (id: string) => void;
   saveRecommendation: (id: string) => void;
+  optimizeCampaignBudget: (campaignId: string, fromPlatform: string, toPlatform: string, amount: number) => void;
 
   // Studio
   saveStudioDraft: (type: string, draft: StudioDraft) => void;
@@ -201,6 +209,17 @@ const defaultCampaigns: Campaign[] = [
     spark: [12, 18, 22, 31, 28, 42, 51, 47, 62, 71],
     audience: "Indie hackers and productivity enthusiasts, 25–40",
     asset: "Product Hunt Description",
+    impressions: 45000,
+    ctr: 4.2,
+    cpi: 1.2,
+    cpc: 0.45,
+    expectedRoi: "2.1x",
+    risk: "Medium",
+    platformsDetail: {
+      "Product Hunt": { status: "running", budget: 400, installs: 450 },
+      "Twitter": { status: "running", budget: 200, installs: 120 },
+      "LinkedIn": { status: "running", budget: 200, installs: 90 }
+    }
   },
   {
     id: "c-2",
@@ -212,6 +231,15 @@ const defaultCampaigns: Campaign[] = [
     spark: [4, 9, 14, 22, 19, 25, 30, 28, 33, 29],
     audience: "Reddit self-improvement community",
     asset: "Reddit Launch Post",
+    impressions: 18000,
+    ctr: 6.5,
+    cpi: 0.0,
+    cpc: 0.0,
+    expectedRoi: "Infinite (Organic)",
+    risk: "Low",
+    platformsDetail: {
+      "Reddit": { status: "completed", budget: 0, installs: 220 }
+    }
   },
   {
     id: "c-3",
@@ -223,6 +251,16 @@ const defaultCampaigns: Campaign[] = [
     spark: [],
     audience: "Health-conscious millennials on social media",
     asset: "Instagram Caption",
+    impressions: 0,
+    ctr: 0.0,
+    cpi: 0.0,
+    cpc: 0.0,
+    expectedRoi: "2.4x",
+    risk: "Low",
+    platformsDetail: {
+      "Instagram": { status: "scheduled", budget: 250, installs: 0 },
+      "TikTok": { status: "scheduled", budget: 200, installs: 0 }
+    }
   },
   {
     id: "c-4",
@@ -233,6 +271,16 @@ const defaultCampaigns: Campaign[] = [
     budget: 1200,
     spark: [],
     audience: "Gen-Z wellness and productivity audience",
+    impressions: 0,
+    ctr: 0.0,
+    cpi: 0.0,
+    cpc: 0.0,
+    expectedRoi: "2.8x",
+    risk: "Medium",
+    platformsDetail: {
+      "Instagram": { status: "draft", budget: 600, installs: 0 },
+      "TikTok": { status: "draft", budget: 600, installs: 0 }
+    }
   },
 ];
 
@@ -478,6 +526,27 @@ export const useApp = create<State>()(
       deleteCampaign: (id) =>
         set((st) => ({
           campaigns: st.campaigns.filter((c) => c.id !== id),
+        })),
+      optimizeCampaignBudget: (campaignId, fromPlatform, toPlatform, amount) =>
+        set((st) => ({
+          campaigns: st.campaigns.map((c) => {
+            if (c.id !== campaignId) return c;
+            const details = c.platformsDetail || {};
+            const fromDet = details[fromPlatform] || { status: "running", budget: c.budget / c.platforms.length, installs: 200 };
+            const toDet = details[toPlatform] || { status: "running", budget: c.budget / c.platforms.length, installs: 200 };
+
+            const newFromBudget = Math.max(0, fromDet.budget - amount);
+            const newToBudget = toDet.budget + amount;
+
+            return {
+              ...c,
+              platformsDetail: {
+                ...details,
+                [fromPlatform]: { ...fromDet, budget: newFromBudget },
+                [toPlatform]: { ...toDet, budget: newToBudget }
+              }
+            };
+          })
         })),
 
       // Notifications

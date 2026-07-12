@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useApp, type Campaign } from "../lib/store";
 import { sampleAssetContent } from "../lib/mock-data";
@@ -33,6 +33,18 @@ function NewCampaign() {
   const toggle = (p: string) =>
     setSelected((s) => (s.includes(p) ? s.filter((x) => x !== p) : [...s, p]));
 
+  const handleAiAutoPlan = () => {
+    setName("AI Student Focus Launch");
+    setSelected(["Reddit", "TikTok", "Instagram"]);
+    setAudience("Gen-Z college students and productivity app churners, aged 18-25");
+    setBudget(350);
+    setLaunchDate("2026-07-21");
+    setAsset("reddit — draft");
+    toast.success("AI pre-populated all campaign settings!", {
+      description: "Allocated budget dynamically across Reddit, TikTok, and Instagram.",
+    });
+  };
+
   const save = () => {
     const c: Campaign = {
       id: `c-${Date.now()}`,
@@ -44,6 +56,16 @@ function NewCampaign() {
       spark: [],
       audience,
       asset: asset ?? undefined,
+      impressions: 0,
+      ctr: 0,
+      cpi: 0,
+      cpc: 0,
+      expectedRoi: "2.4x",
+      risk: "Low",
+      platformsDetail: selected.reduce((acc, p) => ({
+        ...acc,
+        [p]: { status: "scheduled", budget: Math.round(budget / selected.length), installs: 0 }
+      }), {})
     };
     add(c);
     toast.success("Campaign scheduled", { description: `${name} launches ${launchDate}.` });
@@ -60,6 +82,24 @@ function NewCampaign() {
           <ArrowLeft className="h-4 w-4" /> All campaigns
         </Link>
         <h1 className="mt-2 font-display text-2xl font-semibold text-neutral-900">New campaign</h1>
+      </div>
+
+      {/* AI Auto-Planner Prepopulator Card */}
+      <div className="rounded-xl border border-amber-200/50 bg-amber-50/40 p-5 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-neutral-800">
+            <Sparkles className="h-4 w-4 text-amber-500" /> AI Campaign Auto-Planner
+          </div>
+          <button
+            onClick={handleAiAutoPlan}
+            className="rounded-lg bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow"
+          >
+            Autogenerate settings
+          </button>
+        </div>
+        <p className="text-[11px] text-neutral-500 leading-relaxed">
+          Describe your objective in the forms or click the generate button to pre-populate platforms, target audiences, budget divisions, and asset selections.
+        </p>
       </div>
 
       <div className="space-y-6 rounded-xl border border-neutral-200 bg-white p-6">
@@ -81,11 +121,11 @@ function NewCampaign() {
                   onClick={() => toggle(p)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs ${
                     on
-                      ? "border-amber-500 bg-amber-50 text-amber-900"
+                      ? "border-amber-500 bg-amber-50 text-amber-900 font-semibold"
                       : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
                   }`}
                 >
-                  {on && <Check className="h-3 w-3" />}
+                  {on && <Check className="h-3 w-3 animate-scale-in" />}
                   {p}
                 </button>
               );
@@ -124,28 +164,28 @@ function NewCampaign() {
 
         <Section n={6} title="Content">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="min-w-0 flex-1 truncate rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+            <div className="min-w-0 flex-1 truncate rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700 font-mono">
               {asset ?? "No asset selected"}
             </div>
             <button
               onClick={() => setPickerOpen(true)}
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-800 hover:bg-neutral-100"
+              className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-bold text-neutral-800 hover:bg-neutral-100"
             >
               Pick from Studio
             </button>
           </div>
         </Section>
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-2 text-xs font-bold">
           <Link
             to="/campaigns"
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-800 hover:bg-neutral-100"
+            className="rounded-md border border-neutral-300 px-4 py-2 text-neutral-800 hover:bg-neutral-100"
           >
             Cancel
           </Link>
           <button
             onClick={save}
-            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+            className="rounded-md bg-amber-500 px-4 py-2 text-white hover:bg-amber-600"
           >
             Schedule campaign
           </button>
@@ -191,7 +231,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   return (
     <div>
       <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-100 font-mono text-[11px] text-neutral-600">
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-100 font-mono text-[11px] text-neutral-600 font-bold">
           {n}
         </span>
         {title}
