@@ -13,3 +13,4 @@
 * 2026-07-12 23:58:35 - docs: note on accessibility compliance (contrast check)
 * 2026-07-12 23:58:37 - docs: note on testing mobile view responsiveness
 * 2026-07-12 23:58:40 - docs: note on error boundaries in dashboard cards
+* 2026-07-12 23:58:44 - docs: note on telemetry and monitoring setup
