@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, Bot, ChevronDown, Check } from "lucide-react";
+import { Bell, Bot, ChevronDown, Check, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "../../lib/store";
+import { useTheme } from "../../hooks/use-theme";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -21,6 +22,7 @@ export function TopNav({
   onToggleNotifications: () => void;
 }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, toggleTheme } = useTheme();
   const workspaces = useApp((s) => s.workspaces);
   const activeId = useApp((s) => s.activeWorkspaceId);
   const setActive = useApp((s) => s.setActiveWorkspace);
@@ -130,6 +132,14 @@ export function TopNav({
           >
             <Bot className="h-4 w-4" />
             <span className="hidden sm:inline">Ask AI</span>
+          </button>
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="rounded-md p-2 text-neutral-600 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
           <button
             onClick={onToggleNotifications}
