@@ -90,10 +90,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+// Runs before paint so the persisted theme applies with no flash.
+// Dark is the default; "light" in localStorage opts out.
+const THEME_BOOT_SCRIPT = `
+try {
+  var t = localStorage.getItem("launchpilot-theme");
+  if (t !== "light") document.documentElement.classList.add("dark");
+} catch (e) {
+  document.documentElement.classList.add("dark");
+}
+`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
