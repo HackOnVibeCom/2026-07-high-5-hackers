@@ -11,3 +11,4 @@
 * 2026-07-12 23:58:29 - docs: note on performance profiling and lazy loading routes
 * 2026-07-12 23:58:33 - docs: note on setting up TanStack Router and Root shell
 * 2026-07-12 23:58:35 - docs: note on accessibility compliance (contrast check)
+* 2026-07-12 23:58:37 - docs: note on testing mobile view responsiveness
