@@ -1,0 +1,15 @@
+# LaunchPilot AI — backend environment variables (local dev + Cloudflare Pages).
+#
+# Copy this file to `.dev.vars` (already gitignored) and fill in your key.
+# Everything works WITHOUT a key — the backend falls back to its deterministic
+# engine. Add a key to get real LLM-generated launch copy and recommendations.
+#
+# Local dev:  scripts/dev-api.mjs reads .dev.vars automatically.
+# Production: set these in Cloudflare Pages → Settings → Environment variables.
+
+# Get a key at https://openrouter.ai/keys  (has a free tier)
+OPENROUTER_API_KEY=
+
+# Optional — override the model. Default: anthropic/claude-3.5-sonnet
+# Other good options: openai/gpt-4o-mini, google/gemini-flash-1.5, meta-llama/llama-3.1-70b-instruct
+# OPENROUTER_MODEL=anthropic/claude-3.5-sonnet

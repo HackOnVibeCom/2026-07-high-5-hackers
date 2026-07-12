@@ -4,7 +4,9 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite dev",
+    "dev:api": "node scripts/dev-api.mjs",
     "build": "vite build && node scripts/make-static.mjs",
     "build:dev": "vite build --mode development && node scripts/make-static.mjs",
     "preview": "vite preview",
