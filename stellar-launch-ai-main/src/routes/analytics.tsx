@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useApp } from "../lib/store";
 import {
@@ -17,6 +17,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Lock, TrendingUp, BarChart3, PieChart as PieIcon, Activity } from "lucide-react";
+import { chartTooltipStyle, CHART_AXIS, CHART_GRID, CHART_DOT_STROKE } from "../lib/chart-theme";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
@@ -28,7 +29,8 @@ const fadeUp = {
 };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
 
-const installsData = [
+// Shown only until the first /api/dashboard response lands.
+const fallbackInstallsData = [
   { day: "Mon", installs: 82 },
   { day: "Tue", installs: 214 },
   { day: "Wed", installs: 168 },
@@ -37,33 +39,56 @@ const installsData = [
   { day: "Sat", installs: 158 },
   { day: "Sun", installs: 222 },
 ];
-const sources = [
-  { name: "Organic", value: 46, color: "#26AD87" },
-  { name: "Product Hunt", value: 22, color: "#DE8C21" },
-  { name: "Reddit", value: 18, color: "#3564CA" },
-  { name: "Paid Meta", value: 14, color: "#BF4057" },
-];
-const platforms = [
-  { name: "Reddit", installs: 512 },
-  { name: "Product Hunt", installs: 468 },
-  { name: "Instagram", installs: 302 },
-  { name: "LinkedIn", installs: 148 },
-  { name: "TikTok", installs: 132 },
-];
 
-const chartTooltipStyle = {
-  borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.08)",
-  backgroundColor: "rgba(11,15,25,0.95)",
-  color: "#F3F4F6",
-  fontSize: 12,
-  backdropFilter: "blur(8px)",
-};
+const SOURCE_COLORS = ["#26AD87", "#DE8C21", "#3564CA", "#BF4057", "#7B828E"];
 
 function Analytics() {
   const campaigns = useApp((s) => s.campaigns);
+  const dashboardData = useApp((s) => s.dashboardData);
+  const fetchDashboard = useApp((s) => s.fetchDashboard);
   const unlocked = campaigns.some((c) => c.status === "running" || c.status === "completed");
   const [filter, setFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!dashboardData) fetchDashboard();
+  }, [dashboardData, fetchDashboard]);
+
+  const installsData: { day: string; installs: number }[] =
+    dashboardData?.weeklyInstalls ?? fallbackInstallsData;
+  const totalInstalls = installsData.reduce((sum, d) => sum + d.installs, 0);
+  const peakDay = installsData.reduce((a, b) => (b.installs > a.installs ? b : a), installsData[0]);
+
+  // Aggregate real campaign performance (spark points) per platform.
+  const platforms = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const c of campaigns) {
+      if (c.status === "draft") continue;
+      const weight = c.spark.length
+        ? c.spark.reduce((s, v) => s + v, 0)
+        : Math.max(60, Math.round(c.budget / 10));
+      for (const p of c.platforms) totals.set(p, (totals.get(p) ?? 0) + weight);
+    }
+    return [...totals.entries()]
+      .map(([name, installs]) => ({ name, installs }))
+      .sort((a, b) => b.installs - a.installs)
+      .slice(0, 5);
+  }, [campaigns]);
+
+  const sources = useMemo(() => {
+    const total = platforms.reduce((s, p) => s + p.installs, 0) || 1;
+    return platforms.map((p, i) => ({
+      name: p.name,
+      value: Math.round((p.installs / total) * 100),
+      color: SOURCE_COLORS[i % SOURCE_COLORS.length],
+    }));
+  }, [platforms]);
+
+  const topPlatform = platforms[0]?.name ?? "Reddit";
+  const runnerUp = platforms[1];
+  const ratio =
+    runnerUp && runnerUp.installs > 0
+      ? Math.max(1, Math.round(platforms[0].installs / runnerUp.installs))
+      : null;
 
   if (!unlocked) {
     return (
@@ -125,11 +150,29 @@ function Analytics() {
         initial="hidden"
         animate="show"
       >
-        <Metric icon={<TrendingUp className="h-3.5 w-3.5" />} label="Downloads" value="4,286" delta="+22.4%" positive />
+        <Metric
+          icon={<TrendingUp className="h-3.5 w-3.5" />}
+          label="Downloads"
+          value={(dashboardData?.installs ?? totalInstalls).toLocaleString()}
+          delta={dashboardData?.installsDelta ?? "+0.0%"}
+          positive
+        />
         <Metric icon={<BarChart3 className="h-3.5 w-3.5" />} label="Retention (D7)" value="38.1%" delta="+1.8%" positive />
         <Metric icon={<Activity className="h-3.5 w-3.5" />} label="CTR" value="4.6%" delta="-14.2%" />
-        <Metric icon={<PieIcon className="h-3.5 w-3.5" />} label="Conversion" value="12.3%" delta="+3.4%" positive />
-        <Metric icon={<TrendingUp className="h-3.5 w-3.5" />} label="Campaign ROI" value="2.7×" delta="+0.4×" positive />
+        <Metric
+          icon={<PieIcon className="h-3.5 w-3.5" />}
+          label="Activation"
+          value={dashboardData?.activationRate ?? "12.3%"}
+          delta="+3.4%"
+          positive
+        />
+        <Metric
+          icon={<TrendingUp className="h-3.5 w-3.5" />}
+          label="PH Rank"
+          value={dashboardData?.productHuntRank ?? "—"}
+          delta={dashboardData?.topChannel ? `top: ${dashboardData.topChannel}` : "+0.4×"}
+          positive
+        />
       </motion.section>
 
       {/* Charts Row */}
@@ -142,21 +185,21 @@ function Analytics() {
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 lg:col-span-2">
           <h3 className="text-sm font-semibold text-neutral-900">Installs — last 7 days</h3>
           <p className="text-xs text-neutral-500">
-            Total 1,284 · Tuesday was your Product Hunt spike.
+            Total {totalInstalls.toLocaleString()} · {peakDay?.day} was your strongest day.
           </p>
           <div className="mt-5 h-64">
             <ResponsiveContainer>
               <LineChart data={installsData}>
-                <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="day" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
+                <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="day" stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{ stroke: "rgba(222,140,33,0.3)" }} contentStyle={chartTooltipStyle} />
                 <Line
                   type="monotone"
                   dataKey="installs"
                   stroke="#DE8C21"
                   strokeWidth={2.5}
-                  dot={{ r: 4, fill: "#DE8C21", strokeWidth: 2, stroke: "rgba(11,15,25,0.8)" }}
+                  dot={{ r: 4, fill: "#DE8C21", strokeWidth: 2, stroke: CHART_DOT_STROKE }}
                   activeDot={{ r: 6, fill: "#DE8C21", stroke: "#fff", strokeWidth: 2 }}
                 />
               </LineChart>
@@ -207,14 +250,16 @@ function Analytics() {
       >
         <h3 className="text-sm font-semibold text-neutral-900">Top-performing platforms</h3>
         <p className="text-xs text-neutral-500">
-          Reddit is out-performing paid Meta 3:1 this week.
+          {ratio && ratio > 1
+            ? `${topPlatform} is out-performing ${runnerUp!.name} ${ratio}:1 this week.`
+            : `${topPlatform} is your strongest channel this week.`}
         </p>
         <div className="mt-5 h-64">
           <ResponsiveContainer>
             <BarChart data={platforms} layout="vertical" margin={{ left: 24 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis type="category" dataKey="name" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} width={100} />
+              <CartesianGrid stroke={CHART_GRID} strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis type="category" dataKey="name" stroke={CHART_AXIS} fontSize={11} tickLine={false} axisLine={false} width={100} />
               <Tooltip cursor={{ fill: "rgba(222,140,33,0.05)" }} contentStyle={chartTooltipStyle} />
               <Bar
                 dataKey="installs"
