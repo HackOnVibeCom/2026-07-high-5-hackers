@@ -25,19 +25,11 @@ import {
   CartesianGrid
 } from "recharts";
 import { toast } from "sonner";
+import { chartTooltipStyle, CHART_AXIS, CHART_GRID, CHART_DOT_STROKE } from "../lib/chart-theme";
 
 export const Route = createFileRoute("/simulator")({
   component: Simulator,
 });
-
-const chartTooltipStyle = {
-  borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.08)",
-  backgroundColor: "rgba(11,15,25,0.95)",
-  color: "#F3F4F6",
-  fontSize: 12,
-  backdropFilter: "blur(8px)",
-};
 
 function Simulator() {
   const ws = useActiveWorkspace();
@@ -331,16 +323,16 @@ function Simulator() {
             <div className="h-64 pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={simulator.simulatedDailyData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                  <XAxis dataKey="day" fontSize={11} stroke="#6B7280" tickLine={false} axisLine={false} />
-                  <YAxis fontSize={11} stroke="#6B7280" tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID} />
+                  <XAxis dataKey="day" fontSize={11} stroke={CHART_AXIS} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={11} stroke={CHART_AXIS} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={chartTooltipStyle} />
                   <Line
                     type="monotone"
                     dataKey="installs"
                     stroke="#DE8C21"
                     strokeWidth={3}
-                    dot={{ r: 4, fill: "#DE8C21", strokeWidth: 2, stroke: "#fff" }}
+                    dot={{ r: 4, fill: "#DE8C21", strokeWidth: 2, stroke: CHART_DOT_STROKE }}
                     activeDot={{ r: 6, fill: "#DE8C21", strokeWidth: 2 }}
                   />
                 </LineChart>
