@@ -44,25 +44,68 @@ function Home() {
 
   if (!onboarded) {
     return (
-      <div className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center text-center">
-        <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
-          <Sparkles className="h-3 w-3" /> Your AI Growth Agent
-        </span>
-        <h1 className="font-display text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl">
-          Welcome to LaunchPilot AI.
-          <br />
-          Let's launch your app.
-        </h1>
-        <p className="mt-4 max-w-md text-neutral-600">
-          Take {ws?.name ?? "your app"} from day one to its first 10,000 users — strategy, assets,
-          campaigns and growth insights, on autopilot.
-        </p>
-        <button
-          onClick={() => nav({ to: "/onboarding" })}
-          className="mt-8 inline-flex items-center gap-2 rounded-md bg-amber-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-600"
-        >
-          Get started <ArrowRight className="h-4 w-4" />
-        </button>
+      <div className="mx-auto grid min-h-[75vh] max-w-6xl items-center gap-12 lg:grid-cols-12">
+        <div className="flex flex-col items-start text-left lg:col-span-6 animate-fade-in-up">
+          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-500">
+            <Sparkles className="h-3 w-3 glow-pulse text-amber-500" /> Your AI Growth Operating System
+          </span>
+          <h1 className="font-display text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl leading-[1.1]">
+            LaunchPilot AI.
+            <br />
+            Let's launch your app.
+          </h1>
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-neutral-600">
+            Take your mobile app from day zero to its first 10,000 users. Plan marketing strategy, generate store ASO, run community promotion, and track growth insights, all on autopilot.
+          </p>
+          <button
+            onClick={() => nav({ to: "/onboarding" })}
+            className="mt-8 inline-flex items-center gap-2.5 rounded-lg bg-amber-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/20 transition-all hover:bg-amber-600 hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Get started <ArrowRight className="h-4 w-4 animate-bounce" />
+          </button>
+        </div>
+
+        <div className="perspective-container relative hidden h-[500px] w-full items-center justify-center lg:col-span-6 lg:flex">
+          <div className="preserve-3d-scene relative h-[380px] w-[380px]">
+            {/* Grid base */}
+            <div className="layer-grid absolute inset-0 rounded-2xl border border-white/5 bg-slate-900/50 shadow-2xl backdrop-blur-sm" />
+
+            {/* Float Card 1: Social Platform Draft */}
+            <div className="layer-card-1 absolute -left-6 top-10 w-60 rounded-xl bg-slate-950/80 border border-white/10 p-4 shadow-xl">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                <span className="font-mono text-[10px] text-teal-400">STORE METADATA</span>
+              </div>
+              <p className="mt-2 font-display text-xs font-medium text-white">ASO Launch Package</p>
+              <div className="mt-3 space-y-1">
+                <div className="h-1.5 w-full rounded bg-white/10" />
+                <div className="h-1.5 w-5/6 rounded bg-white/10" />
+                <div className="h-1.5 w-4/6 rounded bg-white/10" />
+              </div>
+            </div>
+
+            {/* Float Card 2: Analytics Spark */}
+            <div className="layer-card-2 absolute -right-6 bottom-10 w-60 rounded-xl bg-slate-950/80 border border-white/10 p-4 shadow-xl">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] text-amber-400">GROWTH ANALYTICS</span>
+                <span className="text-[10px] text-teal-400 font-bold">+18.4%</span>
+              </div>
+              <div className="mt-3 flex items-end gap-1.5 h-12">
+                <div className="h-4 w-6 rounded bg-amber-500/20" />
+                <div className="h-6 w-6 rounded bg-amber-500/30" />
+                <div className="h-8 w-6 rounded bg-amber-500/40" />
+                <div className="h-12 w-6 rounded bg-amber-500" />
+              </div>
+            </div>
+
+            {/* Glowing Rocket ship floating inside scene */}
+            <div className="layer-rocket absolute left-1/4 top-1/4 grid h-40 w-40 place-items-center">
+              <div className="glow-pulse grid h-24 w-24 place-items-center rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 text-white shadow-2xl">
+                <Rocket className="h-12 w-12 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

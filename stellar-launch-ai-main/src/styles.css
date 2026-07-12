@@ -303,3 +303,65 @@ input:focus, textarea:focus, select:focus {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
   transition-duration: 150ms !important;
 }
+
+/* 3D Visual Treat Animations */
+.perspective-container {
+  perspective: 1200px;
+}
+
+.preserve-3d-scene {
+  transform-style: preserve-3d;
+  animation: float3D 12s ease-in-out infinite alternate;
+}
+
+@keyframes float3D {
+  0% {
+    transform: rotateX(15deg) rotateY(-18deg) rotateZ(0deg) translateY(0px);
+  }
+  100% {
+    transform: rotateX(22deg) rotateY(-8deg) rotateZ(1deg) translateY(-8px);
+  }
+}
+
+.layer-grid {
+  transform: translateZ(0px);
+  background-image: radial-gradient(rgba(222, 140, 33, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.layer-card-1 {
+  animation: floatLayer1 6s ease-in-out infinite alternate;
+}
+
+.layer-card-2 {
+  animation: floatLayer2 8s ease-in-out infinite alternate;
+}
+
+.layer-rocket {
+  animation: floatRocket 5s ease-in-out infinite alternate;
+}
+
+@keyframes floatLayer1 {
+  0% { transform: translateZ(40px) rotateX(-3deg) rotateY(3deg) translateY(0px); }
+  100% { transform: translateZ(60px) rotateX(-1deg) rotateY(1deg) translateY(-4px); }
+}
+
+@keyframes floatLayer2 {
+  0% { transform: translateZ(80px) rotateX(3deg) rotateY(-3deg) translateX(0px); }
+  100% { transform: translateZ(105px) rotateX(1deg) rotateY(-1deg) translateX(4px); }
+}
+
+@keyframes floatRocket {
+  0% { transform: translateZ(140px) translateY(0px) rotate(-1deg); }
+  100% { transform: translateZ(170px) translateY(-10px) rotate(2deg); }
+}
+
+/* Glow pulse */
+.glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  0% { filter: drop-shadow(0 0 8px rgba(222, 140, 33, 0.4)); }
+  100% { filter: drop-shadow(0 0 25px rgba(222, 140, 33, 0.8)); }
+}
