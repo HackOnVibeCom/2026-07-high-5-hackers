@@ -6,3 +6,4 @@
 * 2026-07-12 23:58:09 - docs: note on mock api endpoints implementation for testing
 * 2026-07-12 23:58:12 - docs: note on simulator UI/UX transition improvements
 * 2026-07-12 23:58:16 - docs: note on assistant prompt tuning and response patterns
+* 2026-07-12 23:58:19 - docs: note on bundler and package management setup (Bun)
