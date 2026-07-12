@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Copy, RefreshCcw, Scissors, Wand2, Check, History, Rocket } from "lucide-react";
+import { ArrowLeft, Copy, RefreshCcw, Scissors, Wand2, Check, History, Rocket, Loader2 } from "lucide-react";
 import { sampleAssetContent, studioTools } from "../lib/mock-data";
 import { useApp } from "../lib/store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/$type")({
   component: AssetWorkspace,
@@ -23,11 +24,13 @@ function AssetWorkspace() {
   const tool = studioTools.find((t) => t.slug === type);
   const savedDraft = useApp((s) => s.studioDrafts[type]);
   const saveStudioDraft = useApp((s) => s.saveStudioDraft);
+  const approveAndPublishAsset = useApp((s) => s.approveAndPublishAsset);
 
   const [text, setText] = useState(
     savedDraft?.text ?? sampleAssetContent[type] ?? "Draft your asset here.",
   );
   const [loading, setLoading] = useState<null | "regen" | "improve" | "shorten">(null);
+  const [publishing, setPublishing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<{ label: string; text: string }[]>(
@@ -73,6 +76,20 @@ function AssetWorkspace() {
     setTimeout(() => setSaved(false), 1400);
   };
 
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      await approveAndPublishAsset(type);
+      toast.success("Content Approved & Published!", {
+        description: "Draft is now live as an active campaign.",
+      });
+    } catch {
+      toast.error("Failed to approve and publish.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
@@ -106,12 +123,18 @@ function AssetWorkspace() {
             {saved ? <Check className="h-4 w-4 text-teal-600" /> : null}
             {saved ? "Saved" : "Save draft"}
           </button>
-          <Link
-            to="/campaigns/new"
-            className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600"
+          <button
+            disabled={publishing}
+            onClick={handlePublish}
+            className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
           >
-            <Rocket className="h-4 w-4" /> Use in campaign
-          </Link>
+            {publishing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Rocket className="h-4 w-4" />
+            )}
+            Approve & Publish
+          </button>
         </div>
       </div>
 

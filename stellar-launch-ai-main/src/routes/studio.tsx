@@ -11,8 +11,11 @@ import {
   Layout,
   Rocket,
   Check,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
-import { useApp } from "../lib/store";
+import { useApp, useActiveWorkspace } from "../lib/store";
+import { toast } from "sonner";
 
 const iconFor: Record<string, React.ComponentType<{ className?: string }>> = {
   AppWindow,
@@ -41,20 +44,45 @@ function Studio() {
   const matches = useMatches();
   const inChild = matches.some((m) => m.routeId === "/studio/$type");
   const drafts = useApp((s) => s.studioDrafts);
+  const ws = useActiveWorkspace();
+  const generateBrandLaunchPackage = useApp((s) => s.generateBrandLaunchPackage);
+  const generatingPackage = useApp((s) => s.generatingPackage);
+
+  const handleGenerate = async () => {
+    toast.promise(generateBrandLaunchPackage(ws.name, ws.category, ws.description), {
+      loading: "Generating assets with ASO & Content Agents...",
+      success: "ASO metadata and social post drafts generated successfully!",
+      error: "Failed to generate assets.",
+    });
+  };
 
   if (inChild) return <Outlet />;
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm text-neutral-500">Studio</p>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900">
-          Marketing assets your agent can draft for you.
-        </h1>
-        <p className="mt-2 max-w-xl text-sm text-neutral-600">
-          Pick a surface. We'll draft in your voice, show a live preview of where it'll appear, and
-          keep every version.
-        </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm text-neutral-500">Studio</p>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900">
+            Marketing assets your agent can draft for you.
+          </h1>
+          <p className="mt-2 max-w-xl text-sm text-neutral-600">
+            Pick a surface. We'll draft in your voice, show a live preview of where it'll appear, and
+            keep every version.
+          </p>
+        </div>
+        <button
+          disabled={generatingPackage}
+          onClick={handleGenerate}
+          className="inline-flex shrink-0 items-center gap-2 rounded-md bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:opacity-50"
+        >
+          {generatingPackage ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+          Generate Launch Package
+        </button>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, TrendingUp, Users, Rocket } from "lucide-react";
 import { useApp, useActiveWorkspace } from "../lib/store";
-import { insights } from "../lib/mock-data";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -26,6 +26,21 @@ function Home() {
   const nav = useNavigate();
   const ws = useActiveWorkspace();
   const campaigns = useApp((s) => s.campaigns);
+
+  const fetchDashboard = useApp((s) => s.fetchDashboard);
+  const fetchRecommendations = useApp((s) => s.fetchRecommendations);
+  const fetchHealthScore = useApp((s) => s.fetchHealthScore);
+  const recommendations = useApp((s) => s.recommendations);
+  const healthScore = useApp((s) => s.healthScore);
+  const dashboardData = useApp((s) => s.dashboardData);
+
+  useEffect(() => {
+    if (onboarded) {
+      fetchDashboard();
+      fetchRecommendations();
+      fetchHealthScore();
+    }
+  }, [onboarded, fetchDashboard, fetchRecommendations, fetchHealthScore]);
 
   if (!onboarded) {
     return (
@@ -82,11 +97,92 @@ function Home() {
           </Link>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MiniStat label="New installs (7d)" value="1,284" delta="+18.2%" positive />
-          <MiniStat label="Activation rate" value="42.6%" delta="-2.1%" />
-          <MiniStat label="Running campaigns" value={String(running)} delta={`${drafts} drafts`} />
-          <MiniStat label="Product Hunt rank" value="#4" delta="Top 5 today" positive />
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Health Score Card */}
+          <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm lg:col-span-1">
+            <h3 className="text-sm font-medium text-neutral-500">Launch Health Score</h3>
+            {healthScore ? (
+              <div className="mt-3 flex items-center justify-between">
+                <div>
+                  <div className="font-display text-4xl font-semibold tracking-tight text-neutral-900">
+                    {healthScore.score}%
+                  </div>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {healthScore.score >= 80
+                      ? "Healthy & ready to scale"
+                      : healthScore.score >= 50
+                        ? "Needs optimization"
+                        : "Critical attention needed"}
+                  </p>
+                </div>
+                <div className="relative h-16 w-16">
+                  <svg className="h-full w-full" viewBox="0 0 36 36">
+                    <path
+                      className="text-neutral-100"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-amber-500 transition-all duration-500"
+                      strokeDasharray={`${healthScore.score}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 text-sm text-neutral-400">Loading health score...</div>
+            )}
+            
+            {healthScore?.breakdown && (
+              <div className="mt-4 border-t border-neutral-100 pt-3 space-y-2 text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">ASO Completeness</span>
+                  <span className="font-mono text-neutral-800">{healthScore.breakdown.asoCompleteness}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Content Freshness</span>
+                  <span className="font-mono text-neutral-800">{healthScore.breakdown.contentFreshness}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Campaign Execution</span>
+                  <span className="font-mono text-neutral-800">{healthScore.breakdown.campaignExecution}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Engagement Trend</span>
+                  <span className="font-mono text-neutral-800">{healthScore.breakdown.engagementTrend}%</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3 lg:col-span-2">
+            <MiniStat
+              label="New installs (7d)"
+              value={dashboardData ? String(dashboardData.installs) : "1,284"}
+              delta="+18.2%"
+              positive
+            />
+            <MiniStat
+              label="Activation rate"
+              value={dashboardData ? `${dashboardData.activationRate}%` : "42.6%"}
+              delta="-2.1%"
+            />
+            <MiniStat label="Running campaigns" value={String(running)} delta={`${drafts} drafts`} />
+            <MiniStat
+              label="Product Hunt rank"
+              value={dashboardData ? dashboardData.productHuntRank : "#4"}
+              delta="Top 5 today"
+              positive
+            />
+          </div>
         </div>
       </section>
 
@@ -99,33 +195,55 @@ function Home() {
           <span className="ml-1 text-sm text-neutral-500">— ranked by impact this week</span>
         </div>
         <div className="grid gap-3">
-          {insights.map((i, idx) => (
-            <motion.div
-              key={i.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.06 }}
-              className={`flex flex-col gap-4 rounded-xl border ${toneMap[i.tone]} p-5 sm:flex-row sm:items-center`}
-            >
-              <div className="min-w-0 flex-1">
-                <p className={`text-sm sm:text-base ${toneText[i.tone]}`}>{i.text}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
-                    {Math.round(i.confidence * 100)}% confidence
-                  </span>
-                  <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
-                    {i.impact}
-                  </span>
-                </div>
-              </div>
-              <Link
-                to={i.to}
-                className="shrink-0 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-neutral-900 shadow-sm hover:bg-neutral-100"
-              >
-                {i.action}
-              </Link>
-            </motion.div>
-          ))}
+          {recommendations.length > 0 ? (
+            recommendations.map((i: any, idx: number) => {
+              const isStudio = i.finding.toLowerCase().includes("screenshot") || i.recommendation.toLowerCase().includes("studio");
+              const to = isStudio ? "/studio" : "/campaigns";
+              const actionLabel = isStudio ? "Optimize in Studio" : "Adjust Campaigns";
+              return (
+                <motion.div
+                  key={i.id || idx}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06 }}
+                  className={`flex flex-col gap-4 rounded-xl border ${toneMap[i.tone || "teal"]} p-5 sm:flex-row sm:items-center`}
+                >
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/80 ${toneText[i.tone || "teal"]}`}>
+                        Finding
+                      </span>
+                      <p className={`text-sm font-semibold ${toneText[i.tone || "teal"]}`}>{i.finding}</p>
+                    </div>
+                    <p className="text-xs text-neutral-600 pl-0 sm:pl-16">
+                      <strong className="text-neutral-700">Cause:</strong> {i.cause}
+                    </p>
+                    <p className="text-xs text-neutral-800 pl-0 sm:pl-16 font-medium">
+                      <strong className="text-neutral-900">Recommendation:</strong> {i.recommendation}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 pl-0 sm:pl-16">
+                      <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
+                        {Math.round((i.confidence || 0.8) * 100)}% confidence
+                      </span>
+                      <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
+                        {i.expected_impact || i.impact}
+                      </span>
+                    </div>
+                  </div>
+                  <Link
+                    to={to}
+                    className="shrink-0 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-neutral-900 shadow-sm hover:bg-neutral-100 self-start sm:self-center"
+                  >
+                    {actionLabel}
+                  </Link>
+                </motion.div>
+              );
+            })
+          ) : (
+            <div className="rounded-xl border border-dashed border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500">
+              Generating Growth Advisor insights...
+            </div>
+          )}
         </div>
       </section>
 

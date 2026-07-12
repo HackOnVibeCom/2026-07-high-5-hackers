@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { communities, influencers } from "../lib/mock-data";
+import { useState, useEffect } from "react";
+import { communities as mockCommunities, influencers as mockInfluencers } from "../lib/mock-data";
 import { Bookmark, MessageSquare, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useApp, useActiveWorkspace } from "../lib/store";
@@ -21,6 +21,19 @@ function Discover() {
   const saved = useApp((s) => s.savedInfluencers);
   const toggleSaved = useApp((s) => s.toggleInfluencerBookmark);
   const ws = useActiveWorkspace();
+
+  const fetchCommunities = useApp((s) => s.fetchCommunities);
+  const fetchInfluencers = useApp((s) => s.fetchInfluencers);
+  const communitiesData = useApp((s) => s.communitiesData);
+  const influencersData = useApp((s) => s.influencersData);
+
+  useEffect(() => {
+    fetchCommunities();
+    fetchInfluencers();
+  }, [fetchCommunities, fetchInfluencers]);
+
+  const communities = communitiesData.length > 0 ? communitiesData : mockCommunities;
+  const influencers = influencersData.length > 0 ? influencersData : mockInfluencers;
 
   return (
     <div className="space-y-6">

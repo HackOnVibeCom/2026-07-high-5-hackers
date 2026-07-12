@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, X, Sparkles, ArrowRight } from "lucide-react";
-import { competitors, roadmap } from "../lib/mock-data";
+import { competitors as mockCompetitors, roadmap } from "../lib/mock-data";
 import { useActiveWorkspace, useApp } from "../lib/store";
 
 export const Route = createFileRoute("/strategy")({
@@ -102,6 +102,15 @@ function Overview() {
 }
 
 function Competitors() {
+  const fetchCompetitors = useApp((s) => s.fetchCompetitors);
+  const competitorsData = useApp((s) => s.competitorsData);
+
+  useEffect(() => {
+    fetchCompetitors();
+  }, [fetchCompetitors]);
+
+  const competitors = competitorsData.length > 0 ? competitorsData : mockCompetitors;
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
