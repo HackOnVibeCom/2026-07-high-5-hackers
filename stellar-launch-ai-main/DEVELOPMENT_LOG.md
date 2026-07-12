@@ -15,3 +15,4 @@
 * 2026-07-12 23:58:40 - docs: note on error boundaries in dashboard cards
 * 2026-07-12 23:58:44 - docs: note on telemetry and monitoring setup
 * 2026-07-12 23:58:47 - docs: note on deploying edge functions locally
+* 2026-07-12 23:58:49 - docs: note on finalizing light/dark theme toggle feature
