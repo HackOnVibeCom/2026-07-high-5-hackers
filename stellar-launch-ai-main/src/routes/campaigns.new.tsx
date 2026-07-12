@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
+import { toast } from "sonner";
 import { useApp, type Campaign } from "../lib/store";
 import { sampleAssetContent } from "../lib/mock-data";
 
@@ -8,7 +9,15 @@ export const Route = createFileRoute("/campaigns/new")({
   component: NewCampaign,
 });
 
-const PLATFORMS = ["Instagram", "Reddit", "Product Hunt", "LinkedIn", "TikTok", "Email", "Twitter"] as const;
+const PLATFORMS = [
+  "Instagram",
+  "Reddit",
+  "Product Hunt",
+  "LinkedIn",
+  "TikTok",
+  "Email",
+  "Twitter",
+] as const;
 
 function NewCampaign() {
   const nav = useNavigate();
@@ -33,15 +42,21 @@ function NewCampaign() {
       launchDate,
       budget,
       spark: [],
+      audience,
+      asset: asset ?? undefined,
     };
     add(c);
+    toast.success("Campaign scheduled", { description: `${name} launches ${launchDate}.` });
     nav({ to: "/campaigns" });
   };
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <Link to="/campaigns" className="inline-flex items-center gap-1 text-sm text-neutral-600 hover:text-neutral-900">
+        <Link
+          to="/campaigns"
+          className="inline-flex items-center gap-1 text-sm text-neutral-600 hover:text-neutral-900"
+        >
           <ArrowLeft className="h-4 w-4" /> All campaigns
         </Link>
         <h1 className="mt-2 font-display text-2xl font-semibold text-neutral-900">New campaign</h1>
@@ -122,34 +137,48 @@ function NewCampaign() {
         </Section>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Link to="/campaigns" className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-800 hover:bg-neutral-100">
+          <Link
+            to="/campaigns"
+            className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-800 hover:bg-neutral-100"
+          >
             Cancel
           </Link>
-          <button onClick={save} className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600">
+          <button
+            onClick={save}
+            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+          >
             Schedule campaign
           </button>
         </div>
       </div>
 
       {pickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 px-4" onClick={() => setPickerOpen(false)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-5">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 px-4"
+          onClick={() => setPickerOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-5"
+          >
             <div className="text-sm font-medium">Pick a Studio asset</div>
             <ul className="mt-3 divide-y divide-neutral-100">
-              {Object.entries(sampleAssetContent).slice(0, 5).map(([k, v]) => (
-                <li key={k}>
-                  <button
-                    onClick={() => {
-                      setAsset(`${k} — draft`);
-                      setPickerOpen(false);
-                    }}
-                    className="w-full px-2 py-3 text-left hover:bg-neutral-50"
-                  >
-                    <div className="text-sm font-medium capitalize">{k.replace("-", " ")}</div>
-                    <div className="mt-0.5 line-clamp-2 text-xs text-neutral-600">{v}</div>
-                  </button>
-                </li>
-              ))}
+              {Object.entries(sampleAssetContent)
+                .slice(0, 5)
+                .map(([k, v]) => (
+                  <li key={k}>
+                    <button
+                      onClick={() => {
+                        setAsset(`${k} — draft`);
+                        setPickerOpen(false);
+                      }}
+                      className="w-full px-2 py-3 text-left hover:bg-neutral-50"
+                    >
+                      <div className="text-sm font-medium capitalize">{k.replace("-", " ")}</div>
+                      <div className="mt-0.5 line-clamp-2 text-xs text-neutral-600">{v}</div>
+                    </button>
+                  </li>
+                ))}
             </ul>
           </div>
         </div>
@@ -162,7 +191,9 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   return (
     <div>
       <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
-        <span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-100 font-mono text-[11px] text-neutral-600">{n}</span>
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-neutral-100 font-mono text-[11px] text-neutral-600">
+          {n}
+        </span>
         {title}
       </div>
       {children}

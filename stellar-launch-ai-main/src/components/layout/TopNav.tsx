@@ -26,7 +26,11 @@ export function TopNav({
   const active = workspaces.find((w) => w.id === activeId) ?? workspaces[0];
   const [wsOpen, setWsOpen] = useState(false);
   const campaigns = useApp((s) => s.campaigns);
-  const analyticsUnlocked = campaigns.some((c) => c.status === "running" || c.status === "completed");
+  const notifications = useApp((s) => s.notifications);
+  const unreadCount = notifications.filter((n) => n.unread).length;
+  const analyticsUnlocked = campaigns.some(
+    (c) => c.status === "running" || c.status === "completed",
+  );
 
   const isActive = (to: string) => (to === "/" ? path === "/" : path.startsWith(to));
 
@@ -39,40 +43,54 @@ export function TopNav({
             onClick={() => setWsOpen((v) => !v)}
             className="flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-sm hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
           >
-            <span
-              className="grid h-6 w-6 place-items-center rounded text-sm"
-              style={{ backgroundColor: `${active.color}20`, color: active.color }}
-            >
-              {active.emoji}
-            </span>
+            {active.logo ? (
+              <img src={active.logo} alt="" className="h-6 w-6 rounded object-cover" />
+            ) : (
+              <span
+                className="grid h-6 w-6 place-items-center rounded text-sm"
+                style={{ backgroundColor: `${active.color}20`, color: active.color }}
+              >
+                {active.emoji}
+              </span>
+            )}
             <span className="font-medium text-neutral-900">{active.name}</span>
             <ChevronDown className="h-4 w-4 text-neutral-500" />
           </button>
           {wsOpen && (
-            <div className="absolute left-0 top-11 z-50 w-64 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
-              {workspaces.map((w) => (
-                <button
-                  key={w.id}
-                  onClick={() => {
-                    setActive(w.id);
-                    setWsOpen(false);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-neutral-100"
-                >
-                  <span
-                    className="grid h-8 w-8 place-items-center rounded"
-                    style={{ backgroundColor: `${w.color}20`, color: w.color }}
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setWsOpen(false)} />
+              <div className="absolute left-0 top-11 z-50 w-64 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg">
+                <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+                  Switch app
+                </div>
+                {workspaces.map((w) => (
+                  <button
+                    key={w.id}
+                    onClick={() => {
+                      setActive(w.id);
+                      setWsOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-neutral-100"
                   >
-                    {w.emoji}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-neutral-900">{w.name}</div>
-                    <div className="truncate text-xs text-neutral-500">{w.category}</div>
-                  </div>
-                  {w.id === activeId && <Check className="h-4 w-4 text-teal-600" />}
-                </button>
-              ))}
-            </div>
+                    {w.logo ? (
+                      <img src={w.logo} alt="" className="h-8 w-8 rounded object-cover" />
+                    ) : (
+                      <span
+                        className="grid h-8 w-8 place-items-center rounded"
+                        style={{ backgroundColor: `${w.color}20`, color: w.color }}
+                      >
+                        {w.emoji}
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium text-neutral-900">{w.name}</div>
+                      <div className="truncate text-xs text-neutral-500">{w.category}</div>
+                    </div>
+                    {w.id === activeId && <Check className="h-4 w-4 text-teal-600" />}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -114,10 +132,15 @@ export function TopNav({
           </button>
           <button
             onClick={onToggleNotifications}
+            aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
             className="relative rounded-md p-2 text-neutral-600 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-500" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-amber-500 px-1 font-mono text-[10px] font-medium leading-none text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
           <div className="grid h-8 w-8 place-items-center rounded-full bg-neutral-800 text-xs font-medium text-white">
             AN

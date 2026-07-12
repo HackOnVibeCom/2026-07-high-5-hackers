@@ -18,14 +18,24 @@ function Sparkline({ data }: { data: number[] }) {
   if (!data.length) return <div className="h-8 text-xs text-neutral-400">—</div>;
   const max = Math.max(...data);
   const min = Math.min(...data);
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * 100;
-    const y = 100 - ((v - min) / Math.max(1, max - min)) * 100;
-    return `${x},${y}`;
-  }).join(" ");
+  const points = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * 100;
+      const y = 100 - ((v - min) / Math.max(1, max - min)) * 100;
+      return `${x},${y}`;
+    })
+    .join(" ");
   return (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-8 w-24">
-      <polyline points={points} fill="none" stroke="#26AD87" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline
+        points={points}
+        fill="none"
+        stroke="#26AD87"
+        strokeWidth="3"
+        vectorEffect="non-scaling-stroke"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -63,45 +73,69 @@ function Campaigns() {
             }`}
           >
             {f}
-            {filter === f && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-amber-500" />}
+            {filter === f && (
+              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-amber-500" />
+            )}
           </button>
         ))}
       </div>
 
       <div className="grid gap-3">
         {filtered.map((c) => (
-          <div key={c.id} className="rounded-xl border border-neutral-200 bg-white p-5">
+          <div
+            key={c.id}
+            className="rounded-xl border border-neutral-200 bg-white p-5 transition hover:border-neutral-300 hover:shadow-sm"
+          >
             <div className="flex flex-wrap items-center gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${statusColors[c.status]}`}>
+                  <span
+                    className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize ${statusColors[c.status]}`}
+                  >
                     {c.status}
                   </span>
                   <div className="flex flex-wrap gap-1">
                     {c.platforms.map((p) => (
-                      <span key={p} className="rounded bg-neutral-100 px-2 py-0.5 font-mono text-[10px] text-neutral-700">{p}</span>
+                      <span
+                        key={p}
+                        className="rounded bg-neutral-100 px-2 py-0.5 font-mono text-[10px] text-neutral-700"
+                      >
+                        {p}
+                      </span>
                     ))}
                   </div>
                 </div>
                 <div className="mt-1.5 text-base font-medium text-neutral-900">{c.name}</div>
                 <div className="mt-1 flex items-center gap-3 text-xs text-neutral-500">
-                  <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> Launches {c.launchDate}</span>
-                  <span className="inline-flex items-center gap-1"><DollarSign className="h-3 w-3" /> ${c.budget.toLocaleString()}</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> Launches {c.launchDate}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" /> ${c.budget.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div className="shrink-0">
                 <Sparkline data={c.spark} />
               </div>
-              <button className="shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-800 hover:bg-neutral-100">
+              <Link
+                to="/campaigns/$id"
+                params={{ id: c.id }}
+                className="shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-800 hover:bg-neutral-100"
+              >
                 Open
-              </button>
+              </Link>
             </div>
           </div>
         ))}
         {filtered.length === 0 && (
           <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center">
-            <div className="font-display text-lg text-neutral-900">Nothing here yet — that's an opportunity.</div>
-            <p className="mt-1 text-sm text-neutral-500">Spin up a {filter} campaign to see how it'd perform.</p>
+            <div className="font-display text-lg text-neutral-900">
+              Nothing here yet — that's an opportunity.
+            </div>
+            <p className="mt-1 text-sm text-neutral-500">
+              Spin up a {filter} campaign to see how it'd perform.
+            </p>
             <Link
               to="/campaigns/new"
               className="mt-4 inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"

@@ -1,12 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Bot, Send, X, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useApp, type AssistantMessage } from "../../lib/store";
 
-type Msg = {
-  role: "user" | "ai";
-  text: string;
-  action?: { label: string; to: string };
+type Msg = AssistantMessage;
+
+const WELCOME: Msg = {
+  role: "ai",
+  text: "Hey — I'm your growth agent. I can see what you're looking at. Ask me anything, or try one of these:",
 };
 
 const contextLabel = (path: string) => {
@@ -65,27 +67,30 @@ const canned = (q: string, ctx: string): Msg => {
 export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const ctx = contextLabel(path);
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: "ai", text: "Hey — I'm your growth agent. I can see what you're looking at. Ask me anything, or try one of these:" },
-  ]);
+  const stored = useApp((s) => s.assistantMessages);
+  const setStored = useApp((s) => s.setAssistantMessages);
+  const messages = stored.length ? stored : [WELCOME];
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, thinking]);
+    if (open) endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, thinking, open]);
 
   const send = (text: string) => {
     if (!text.trim()) return;
-    setMessages((m) => [...m, { role: "user", text }]);
+    const base = stored.length ? stored : [WELCOME];
+    setStored([...base, { role: "user", text }]);
     setInput("");
     setThinking(true);
     setTimeout(() => {
-      setMessages((m) => [...m, canned(text, ctx)]);
+      setStored([...base, { role: "user", text }, canned(text, ctx)]);
       setThinking(false);
     }, 900);
   };
+
+  const reset = () => setStored([]);
 
   return (
     <AnimatePresence>
@@ -122,9 +127,22 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
                   </div>
                 </div>
               </div>
-              <button onClick={onClose} className="rounded p-1 text-neutral-500 hover:bg-neutral-100">
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                {messages.length > 1 && (
+                  <button
+                    onClick={reset}
+                    className="rounded px-2 py-1 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                  >
+                    Clear
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="rounded p-1 text-neutral-500 hover:bg-neutral-100"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -139,13 +157,14 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
                   >
                     <p className="whitespace-pre-line">{m.text}</p>
                     {m.action && (
-                      <a
-                        href={m.action.to}
+                      <Link
+                        to={m.action.to}
+                        onClick={onClose}
                         className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100"
                       >
                         <Sparkles className="h-3 w-3" />
                         {m.action.label}
-                      </a>
+                      </Link>
                     )}
                   </div>
                 </div>

@@ -55,14 +55,23 @@ function Home() {
   const running = campaigns.filter((c) => c.status === "running").length;
   const drafts = campaigns.filter((c) => c.status === "draft").length;
 
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const dateLabel = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+
   return (
     <div className="space-y-10">
       <section>
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-sm text-neutral-500">Growth report — Sunday, Jul 12</p>
+            <p className="text-sm text-neutral-500">Growth report — {dateLabel}</p>
             <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-neutral-900">
-              Good morning. Here's what {ws?.name} should do next.
+              {greeting}. Here's what {ws?.name} should do next.
             </h1>
           </div>
           <Link

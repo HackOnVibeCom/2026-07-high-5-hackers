@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
@@ -9,17 +9,37 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const stepQuestions = [
-  { q: "Who is your ideal user?", a: "Busy professionals aged 25–40 who've tried and quit at least one habit tracker." },
-  { q: "What problem does your app solve?", a: "It removes the shame loop of streak apps so people actually stick with new habits." },
+  {
+    q: "Who is your ideal user?",
+    a: "Busy professionals aged 25–40 who've tried and quit at least one habit tracker.",
+  },
+  {
+    q: "What problem does your app solve?",
+    a: "It removes the shame loop of streak apps so people actually stick with new habits.",
+  },
   { q: "Who are your main competitors?", a: "Habitify, Streaks, Fabulous, and Way of Life." },
-  { q: "How do users currently solve this?", a: "Notion templates, paper journals, or streak-based apps that eventually punish them." },
-  { q: "How will you make money?", a: "Freemium with a $4/mo Pro tier for weekly reviews and unlimited habits." },
+  {
+    q: "How do users currently solve this?",
+    a: "Notion templates, paper journals, or streak-based apps that eventually punish them.",
+  },
+  {
+    q: "How will you make money?",
+    a: "Freemium with a $4/mo Pro tier for weekly reviews and unlimited habits.",
+  },
 ];
 
 function Onboarding() {
   const nav = useNavigate();
-  const { activeStage, completedStages, setActiveStage, completeStage, setOnboarded, updateWorkspace, workspaces, activeWorkspaceId } =
-    useApp();
+  const {
+    activeStage,
+    completedStages,
+    setActiveStage,
+    completeStage,
+    setOnboarded,
+    updateWorkspace,
+    workspaces,
+    activeWorkspaceId,
+  } = useApp();
   const active = workspaces.find((w) => w.id === activeWorkspaceId)!;
 
   const currentIdx = ONBOARDING_STAGES.findIndex((s) => s.id === activeStage);
@@ -27,7 +47,9 @@ function Onboarding() {
   return (
     <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
       <aside className="rounded-xl border border-neutral-200 bg-white p-4">
-        <div className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">Launch plan</div>
+        <div className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
+          Launch plan
+        </div>
         <ol className="space-y-1">
           {ONBOARDING_STAGES.map((s, idx) => {
             const done = completedStages.includes(s.id);
@@ -70,6 +92,8 @@ function Onboarding() {
           <AppInfoStep
             name={active.name}
             description={active.description}
+            emoji={active.emoji}
+            logo={active.logo}
             onSave={(v) => {
               updateWorkspace(v);
               completeStage("app-info");
@@ -113,20 +137,41 @@ function Onboarding() {
 function AppInfoStep({
   name,
   description,
+  emoji,
+  logo,
   onSave,
 }: {
   name: string;
   description: string;
-  onSave: (v: { name: string; description: string; category: string; platform: "iOS" | "Android" | "Both" }) => void;
+  emoji: string;
+  logo?: string;
+  onSave: (v: {
+    name: string;
+    description: string;
+    category: string;
+    platform: "iOS" | "Android" | "Both";
+    logo?: string;
+  }) => void;
 }) {
   const [n, setN] = useState(name);
   const [d, setD] = useState(description);
   const [platform, setPlatform] = useState<"iOS" | "Android" | "Both">("Both");
   const [category, setCategory] = useState("Health & Fitness");
+  const [logoUrl, setLogoUrl] = useState<string | undefined>(logo);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onPickLogo = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setLogoUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-semibold text-neutral-900">Tell us about your app</h2>
+      <h2 className="font-display text-2xl font-semibold text-neutral-900">
+        Tell us about your app
+      </h2>
       <p className="mt-1 text-sm text-neutral-600">
         This becomes the backbone your growth agent uses for every asset and campaign.
       </p>
@@ -168,10 +213,27 @@ function AppInfoStep({
           </div>
         </Field>
         <Field label="Logo">
-          <div className="flex items-center gap-3 rounded-md border border-dashed border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-500">
-            <div className="grid h-9 w-9 place-items-center rounded bg-teal-100 text-teal-800">🌿</div>
-            Drag & drop or click to upload
-          </div>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex w-full items-center gap-3 rounded-md border border-dashed border-neutral-300 bg-neutral-50 px-3 py-2 text-left text-sm text-neutral-500 transition hover:border-amber-400 hover:bg-amber-50/30"
+          >
+            {logoUrl ? (
+              <img src={logoUrl} alt="App logo" className="h-9 w-9 rounded object-cover" />
+            ) : (
+              <div className="grid h-9 w-9 place-items-center rounded bg-teal-100 text-teal-800">
+                {emoji}
+              </div>
+            )}
+            {logoUrl ? "Logo added — click to change" : "Click to upload"}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => onPickLogo(e.target.files?.[0])}
+          />
         </Field>
         <div className="sm:col-span-2">
           <Field label="Short description">
@@ -187,7 +249,7 @@ function AppInfoStep({
 
       <div className="mt-8 flex justify-end">
         <button
-          onClick={() => onSave({ name: n, description: d, category, platform })}
+          onClick={() => onSave({ name: n, description: d, category, platform, logo: logoUrl })}
           className="inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
         >
           Continue <ArrowRight className="h-4 w-4" />
@@ -241,7 +303,9 @@ function ChatStep({ onDone }: { onDone: () => void }) {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-semibold text-neutral-900">Business understanding</h2>
+      <h2 className="font-display text-2xl font-semibold text-neutral-900">
+        Business understanding
+      </h2>
       <p className="mt-1 text-sm text-neutral-600">
         A quick conversation so your agent knows what you're really building.
       </p>
@@ -301,9 +365,10 @@ function ChatStep({ onDone }: { onDone: () => void }) {
               <Sparkles className="h-3.5 w-3.5" /> Product summary
             </div>
             <p className="mt-2 text-sm text-amber-900">
-              You're building a calm, forgiving habit tracker for busy 25–40 year-olds who bounced off streak-based apps.
-              You beat competitors like Habitify and Streaks by removing the shame loop and adding a 1-minute weekly review.
-              Monetization is freemium with a $4/month Pro tier — a clear path from free habit to paid reflection.
+              You're building a calm, forgiving habit tracker for busy 25–40 year-olds who bounced
+              off streak-based apps. You beat competitors like Habitify and Streaks by removing the
+              shame loop and adding a 1-minute weekly review. Monetization is freemium with a
+              $4/month Pro tier — a clear path from free habit to paid reflection.
             </p>
             <div className="mt-4 flex justify-end">
               <button
@@ -355,12 +420,32 @@ function SimpleStep({
       body: "Once your first campaign is running, your agent will surface priority insights on Home every morning.",
     },
   };
+  const preview: Partial<Record<OnboardingStage, { to: string; label: string }>> = {
+    competitors: { to: "/strategy", label: "Preview Strategy" },
+    assets: { to: "/studio", label: "Preview Studio" },
+    "launch-plan": { to: "/strategy", label: "Preview roadmap" },
+    "launch-campaign": { to: "/campaigns", label: "Preview Campaigns" },
+  };
   const m = meta[stage];
+  const p = preview[stage];
   return (
     <div>
+      <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+        <Sparkles className="h-3 w-3" /> Your agent prepared this
+      </div>
       <h2 className="font-display text-2xl font-semibold text-neutral-900">{m.title}</h2>
       <p className="mt-2 max-w-lg text-sm text-neutral-600">{m.body}</p>
-      <div className="mt-8 flex justify-end gap-2">
+      <div className="mt-8 flex items-center justify-between gap-2">
+        {p ? (
+          <Link
+            to={p.to}
+            className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:underline"
+          >
+            {p.label} <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        ) : (
+          <span />
+        )}
         <button
           onClick={isLast ? onFinish : onDone}
           className="inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"

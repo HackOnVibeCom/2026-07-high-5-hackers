@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { notifications as defaultNotifications } from "./mock-data";
 
 export type Workspace = {
   id: string;
@@ -9,16 +10,11 @@ export type Workspace = {
   emoji: string;
   color: string;
   description: string;
+  logo?: string; // data-url from uploaded image
 };
 
 export type OnboardingStage =
-  | "app-info"
-  | "audience"
-  | "competitors"
-  | "assets"
-  | "launch-plan"
-  | "launch-campaign"
-  | "growth";
+  "app-info" | "audience" | "competitors" | "assets" | "launch-plan" | "launch-campaign" | "growth";
 
 export const ONBOARDING_STAGES: { id: OnboardingStage; label: string }[] = [
   { id: "app-info", label: "App Information" },
@@ -38,6 +34,28 @@ export type Campaign = {
   launchDate: string;
   budget: number;
   spark: number[];
+  audience?: string;
+  asset?: string;
+};
+
+export type Notification = {
+  id: string;
+  day: string;
+  text: string;
+  unread: boolean;
+  to: string;
+  tone: "teal" | "amber" | "rose" | "blue";
+};
+
+export type StudioDraft = {
+  text: string;
+  history: { id: string; label: string; text: string; ts: number }[];
+};
+
+export type AssistantMessage = {
+  role: "user" | "ai";
+  text: string;
+  action?: { label: string; to: string };
 };
 
 type State = {
@@ -47,12 +65,39 @@ type State = {
   workspaces: Workspace[];
   activeWorkspaceId: string;
   campaigns: Campaign[];
+  notifications: Notification[];
+  savedInfluencers: string[];
+  studioDrafts: Record<string, StudioDraft>;
+  roadmapDone: Record<string, boolean>;
+  assistantMessages: AssistantMessage[];
+
+  // Onboarding & workspace
   setOnboarded: (v: boolean) => void;
   completeStage: (s: OnboardingStage) => void;
   setActiveStage: (s: OnboardingStage) => void;
-  addCampaign: (c: Campaign) => void;
   setActiveWorkspace: (id: string) => void;
   updateWorkspace: (w: Partial<Workspace>) => void;
+
+  // Campaigns
+  addCampaign: (c: Campaign) => void;
+  updateCampaign: (id: string, patch: Partial<Campaign>) => void;
+  deleteCampaign: (id: string) => void;
+
+  // Notifications
+  markNotificationsRead: () => void;
+  addNotification: (n: Notification) => void;
+
+  // Discover
+  toggleInfluencerBookmark: (handle: string) => void;
+
+  // Studio
+  saveStudioDraft: (type: string, draft: StudioDraft) => void;
+
+  // Strategy
+  setRoadmapDone: (taskId: string, done: boolean) => void;
+
+  // Assistant
+  setAssistantMessages: (msgs: AssistantMessage[]) => void;
 };
 
 const defaultWorkspaces: Workspace[] = [
@@ -94,6 +139,8 @@ const defaultCampaigns: Campaign[] = [
     launchDate: "2026-07-14",
     budget: 800,
     spark: [12, 18, 22, 31, 28, 42, 51, 47, 62, 71],
+    audience: "Indie hackers and productivity enthusiasts, 25–40",
+    asset: "Product Hunt Description",
   },
   {
     id: "c-2",
@@ -103,6 +150,8 @@ const defaultCampaigns: Campaign[] = [
     launchDate: "2026-07-02",
     budget: 0,
     spark: [4, 9, 14, 22, 19, 25, 30, 28, 33, 29],
+    audience: "Reddit self-improvement community",
+    asset: "Reddit Launch Post",
   },
   {
     id: "c-3",
@@ -112,6 +161,8 @@ const defaultCampaigns: Campaign[] = [
     launchDate: "2026-07-20",
     budget: 450,
     spark: [],
+    audience: "Health-conscious millennials on social media",
+    asset: "Instagram Caption",
   },
   {
     id: "c-4",
@@ -121,6 +172,7 @@ const defaultCampaigns: Campaign[] = [
     launchDate: "2026-07-25",
     budget: 1200,
     spark: [],
+    audience: "Gen-Z wellness and productivity audience",
   },
 ];
 
@@ -133,6 +185,13 @@ export const useApp = create<State>()(
       workspaces: defaultWorkspaces,
       activeWorkspaceId: "ws-1",
       campaigns: defaultCampaigns,
+      notifications: defaultNotifications.map((n) => ({ ...n })),
+      savedInfluencers: [],
+      studioDrafts: {},
+      roadmapDone: {},
+      assistantMessages: [],
+
+      // Onboarding & workspace
       setOnboarded: (v) => set({ onboarded: v }),
       completeStage: (s) =>
         set((st) => ({
@@ -141,7 +200,6 @@ export const useApp = create<State>()(
             : [...st.completedStages, s],
         })),
       setActiveStage: (s) => set({ activeStage: s }),
-      addCampaign: (c) => set((st) => ({ campaigns: [c, ...st.campaigns] })),
       setActiveWorkspace: (id) => set({ activeWorkspaceId: id }),
       updateWorkspace: (w) =>
         set((st) => ({
@@ -149,6 +207,47 @@ export const useApp = create<State>()(
             x.id === st.activeWorkspaceId ? { ...x, ...w } : x,
           ),
         })),
+
+      // Campaigns
+      addCampaign: (c) => set((st) => ({ campaigns: [c, ...st.campaigns] })),
+      updateCampaign: (id, patch) =>
+        set((st) => ({
+          campaigns: st.campaigns.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        })),
+      deleteCampaign: (id) =>
+        set((st) => ({
+          campaigns: st.campaigns.filter((c) => c.id !== id),
+        })),
+
+      // Notifications
+      markNotificationsRead: () =>
+        set((st) => ({
+          notifications: st.notifications.map((n) => ({ ...n, unread: false })),
+        })),
+      addNotification: (n) => set((st) => ({ notifications: [n, ...st.notifications] })),
+
+      // Discover
+      toggleInfluencerBookmark: (handle) =>
+        set((st) => ({
+          savedInfluencers: st.savedInfluencers.includes(handle)
+            ? st.savedInfluencers.filter((h) => h !== handle)
+            : [...st.savedInfluencers, handle],
+        })),
+
+      // Studio
+      saveStudioDraft: (type, draft) =>
+        set((st) => ({
+          studioDrafts: { ...st.studioDrafts, [type]: draft },
+        })),
+
+      // Strategy
+      setRoadmapDone: (taskId, done) =>
+        set((st) => ({
+          roadmapDone: { ...st.roadmapDone, [taskId]: done },
+        })),
+
+      // Assistant
+      setAssistantMessages: (msgs) => set({ assistantMessages: msgs }),
     }),
     { name: "launchpilot-state" },
   ),

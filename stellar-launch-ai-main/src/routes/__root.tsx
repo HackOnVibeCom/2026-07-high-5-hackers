@@ -13,6 +13,7 @@ import { reportError } from "../lib/error-reporting";
 import { TopNav } from "../components/layout/TopNav";
 import { AssistantPanel } from "../components/panels/AssistantPanel";
 import { NotificationsPanel } from "../components/panels/NotificationsPanel";
+import { Toaster } from "../components/ui/sonner";
 import { AnimatePresence, motion } from "framer-motion";
 
 function NotFoundComponent() {
@@ -58,9 +59,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "LaunchPilot AI — Your AI Growth Agent" },
-      { name: "description", content: "LaunchPilot AI is an AI growth agent that takes newly launched mobile apps from day one to their first 10,000 users." },
+      {
+        name: "description",
+        content:
+          "LaunchPilot AI is an AI growth agent that takes newly launched mobile apps from day one to their first 10,000 users.",
+      },
       { property: "og:title", content: "LaunchPilot AI — Your AI Growth Agent" },
-      { property: "og:description", content: "From launch day to 10,000 users. Strategy, assets, campaigns and growth insights, on autopilot." },
+      {
+        property: "og:description",
+        content:
+          "From launch day to 10,000 users. Strategy, assets, campaigns and growth insights, on autopilot.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -122,6 +131,7 @@ function RootComponent() {
         </main>
         <AssistantPanel open={assistantOpen} onClose={() => setAssistantOpen(false)} />
         <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+        <Toaster position="bottom-right" />
       </div>
     </QueryClientProvider>
   );

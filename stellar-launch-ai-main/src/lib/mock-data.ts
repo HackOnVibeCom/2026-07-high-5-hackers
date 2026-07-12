@@ -9,7 +9,7 @@ export const competitors = [
     weaknesses: ["Weak community", "Overwhelming for beginners"],
     channels: ["App Store", "Reddit", "Product Hunt"],
     keywords: ["habit tracker", "daily routine", "productivity"],
-    complaint: "\"Way too many settings — I just want to check off my morning walk.\"",
+    complaint: '"Way too many settings — I just want to check off my morning walk."',
   },
   {
     name: "Streaks",
@@ -21,7 +21,7 @@ export const competitors = [
     weaknesses: ["iOS only", "No social features", "Rigid streak logic"],
     channels: ["App Store Features", "Twitter"],
     keywords: ["streak", "iOS habit", "minimal"],
-    complaint: "\"One missed day and my 200-day streak is gone. Brutal.\"",
+    complaint: '"One missed day and my 200-day streak is gone. Brutal."',
   },
   {
     name: "Way of Life",
@@ -33,7 +33,7 @@ export const competitors = [
     weaknesses: ["Dated UI", "Slow updates", "Poor onboarding"],
     channels: ["App Store", "Blogs"],
     keywords: ["color chart", "habit journal"],
-    complaint: "\"Looks like it was designed in 2013 because it was.\"",
+    complaint: '"Looks like it was designed in 2013 because it was."',
   },
   {
     name: "Fabulous",
@@ -45,7 +45,7 @@ export const competitors = [
     weaknesses: ["Expensive", "Aggressive paywall", "Feels bloated"],
     channels: ["TikTok", "YouTube ads", "Instagram"],
     keywords: ["morning routine", "wellness coach"],
-    complaint: "\"Free trial forced me into a $80/year plan I didn't want.\"",
+    complaint: '"Free trial forced me into a $80/year plan I didn\'t want."',
   },
   {
     name: "Done",
@@ -57,7 +57,7 @@ export const competitors = [
     weaknesses: ["Basic analytics", "No web app"],
     channels: ["App Store", "Reddit"],
     keywords: ["habit widget", "iOS"],
-    complaint: "\"Wish it had weekly reports without upgrading.\"",
+    complaint: '"Wish it had weekly reports without upgrading."',
   },
   {
     name: "Productive",
@@ -69,7 +69,7 @@ export const competitors = [
     weaknesses: ["Sub pressure", "Confusing plans"],
     channels: ["App Store", "Instagram"],
     keywords: ["rituals", "daily planner"],
-    complaint: "\"Every third tap opens the upgrade screen.\"",
+    complaint: '"Every third tap opens the upgrade screen."',
   },
 ];
 
@@ -88,7 +88,11 @@ export const roadmap = [
     week: "Week 2",
     subtitle: "Launch week",
     tasks: [
-      { title: "Publish Product Hunt at 12:01 PST Tuesday", platform: "Product Hunt", target: "campaigns" },
+      {
+        title: "Publish Product Hunt at 12:01 PST Tuesday",
+        platform: "Product Hunt",
+        target: "campaigns",
+      },
       { title: "Push Instagram Reel: 7-Day Reset", platform: "Instagram", target: "studio" },
       { title: "Send launch email to waitlist (2,400)", platform: "Email", target: "studio" },
       { title: "Post in Indie Hackers Milestones", platform: "Indie Hackers", target: "discover" },
@@ -117,21 +121,135 @@ export const roadmap = [
 ];
 
 export const communities = [
-  { name: "r/getdisciplined", platform: "Reddit", size: "1.4M members", best: "Tue–Thu, 9am PST", rules: "No self-promo without value. Story format works.", difficulty: 3, traffic: "High", cta: "Draft founder story" },
-  { name: "Indie Hackers", platform: "Indie Hackers", size: "180K makers", best: "Weekdays, 8am EST", rules: "Milestones + revenue transparency get traction.", difficulty: 2, traffic: "Medium", cta: "Draft milestone post" },
-  { name: "Product Hunt", platform: "Product Hunt", size: "5M visitors/mo", best: "Tuesday 12:01 PST", rules: "One shot per product. Hunters matter.", difficulty: 4, traffic: "High", cta: "Draft launch copy" },
-  { name: "Hacker News", platform: "Hacker News", size: "5M readers", best: "Weekday mornings PST", rules: "Show HN posts only. Technical honesty wins.", difficulty: 5, traffic: "High", cta: "Draft Show HN" },
-  { name: "r/productivity", platform: "Reddit", size: "2.1M members", best: "Sun–Mon evenings", rules: "Discuss method, not product. Link in comments.", difficulty: 3, traffic: "Medium", cta: "Draft discussion" },
-  { name: "Designer Hangout", platform: "Discord", size: "45K designers", best: "Weekdays, all day", rules: "Introduce yourself. Share process, not pitch.", difficulty: 2, traffic: "Low", cta: "Draft intro" },
+  {
+    name: "r/getdisciplined",
+    platform: "Reddit",
+    size: "1.4M members",
+    best: "Tue–Thu, 9am PST",
+    rules: "No self-promo without value. Story format works.",
+    difficulty: 3,
+    traffic: "High",
+    cta: "Draft founder story",
+  },
+  {
+    name: "Indie Hackers",
+    platform: "Indie Hackers",
+    size: "180K makers",
+    best: "Weekdays, 8am EST",
+    rules: "Milestones + revenue transparency get traction.",
+    difficulty: 2,
+    traffic: "Medium",
+    cta: "Draft milestone post",
+  },
+  {
+    name: "Product Hunt",
+    platform: "Product Hunt",
+    size: "5M visitors/mo",
+    best: "Tuesday 12:01 PST",
+    rules: "One shot per product. Hunters matter.",
+    difficulty: 4,
+    traffic: "High",
+    cta: "Draft launch copy",
+  },
+  {
+    name: "Hacker News",
+    platform: "Hacker News",
+    size: "5M readers",
+    best: "Weekday mornings PST",
+    rules: "Show HN posts only. Technical honesty wins.",
+    difficulty: 5,
+    traffic: "High",
+    cta: "Draft Show HN",
+  },
+  {
+    name: "r/productivity",
+    platform: "Reddit",
+    size: "2.1M members",
+    best: "Sun–Mon evenings",
+    rules: "Discuss method, not product. Link in comments.",
+    difficulty: 3,
+    traffic: "Medium",
+    cta: "Draft discussion",
+  },
+  {
+    name: "Designer Hangout",
+    platform: "Discord",
+    size: "45K designers",
+    best: "Weekdays, all day",
+    rules: "Introduce yourself. Share process, not pitch.",
+    difficulty: 2,
+    traffic: "Low",
+    cta: "Draft intro",
+  },
 ];
 
 export const influencers = [
-  { name: "Maya Okafor", handle: "@mayabuilds", platform: "Instagram", followers: "38.2K", engagement: "6.4%", installs: "420–620", price: "$650", match: 92, tags: ["habits", "wellness", "solo founders"] },
-  { name: "Devon Park", handle: "@devonpark", platform: "TikTok", followers: "112K", engagement: "8.1%", installs: "1.1K–1.6K", price: "$1,400", match: 88, tags: ["productivity", "gen-z", "morning routines"] },
-  { name: "Rina Patel", handle: "@rina.reads", platform: "Instagram", followers: "22.5K", engagement: "5.9%", installs: "280–410", price: "$400", match: 84, tags: ["mindfulness", "journaling"] },
-  { name: "Alex Thorne", handle: "@alexbuildsapps", platform: "Twitter", followers: "48K", engagement: "3.2%", installs: "180–260", price: "$250", match: 79, tags: ["indie dev", "launch", "iOS"] },
-  { name: "Sana Ito", handle: "@sanaito", platform: "TikTok", followers: "215K", engagement: "9.4%", installs: "1.8K–2.4K", price: "$2,100", match: 76, tags: ["study", "aesthetic", "planner"] },
-  { name: "Jordan Ellis", handle: "@jordanellis", platform: "YouTube", followers: "84K", engagement: "5.0%", installs: "600–900", price: "$1,800", match: 73, tags: ["deep work", "long-form"] },
+  {
+    name: "Maya Okafor",
+    handle: "@mayabuilds",
+    platform: "Instagram",
+    followers: "38.2K",
+    engagement: "6.4%",
+    installs: "420–620",
+    price: "$650",
+    match: 92,
+    tags: ["habits", "wellness", "solo founders"],
+  },
+  {
+    name: "Devon Park",
+    handle: "@devonpark",
+    platform: "TikTok",
+    followers: "112K",
+    engagement: "8.1%",
+    installs: "1.1K–1.6K",
+    price: "$1,400",
+    match: 88,
+    tags: ["productivity", "gen-z", "morning routines"],
+  },
+  {
+    name: "Rina Patel",
+    handle: "@rina.reads",
+    platform: "Instagram",
+    followers: "22.5K",
+    engagement: "5.9%",
+    installs: "280–410",
+    price: "$400",
+    match: 84,
+    tags: ["mindfulness", "journaling"],
+  },
+  {
+    name: "Alex Thorne",
+    handle: "@alexbuildsapps",
+    platform: "Twitter",
+    followers: "48K",
+    engagement: "3.2%",
+    installs: "180–260",
+    price: "$250",
+    match: 79,
+    tags: ["indie dev", "launch", "iOS"],
+  },
+  {
+    name: "Sana Ito",
+    handle: "@sanaito",
+    platform: "TikTok",
+    followers: "215K",
+    engagement: "9.4%",
+    installs: "1.8K–2.4K",
+    price: "$2,100",
+    match: 76,
+    tags: ["study", "aesthetic", "planner"],
+  },
+  {
+    name: "Jordan Ellis",
+    handle: "@jordanellis",
+    platform: "YouTube",
+    followers: "84K",
+    engagement: "5.0%",
+    installs: "600–900",
+    price: "$1,800",
+    match: 73,
+    tags: ["deep work", "long-form"],
+  },
 ];
 
 export const insights = [
@@ -174,12 +292,54 @@ export const insights = [
 ];
 
 export const notifications = [
-  { id: "n-1", day: "Today", text: "Your Reddit campaign is performing 40% above average.", unread: true, to: "/analytics", tone: "teal" as const },
-  { id: "n-2", day: "Today", text: "Instagram engagement dropped 14% today.", unread: true, to: "/analytics", tone: "rose" as const },
-  { id: "n-3", day: "Today", text: "3 influencers match your niche — Maya, Devon, Rina.", unread: true, to: "/discover", tone: "amber" as const },
-  { id: "n-4", day: "Yesterday", text: "A new competitor 'Stoic Habits' launched on Product Hunt.", unread: false, to: "/strategy", tone: "blue" as const },
-  { id: "n-5", day: "Yesterday", text: "Product Hunt Launch Week hit 500 upvotes.", unread: false, to: "/campaigns", tone: "teal" as const },
-  { id: "n-6", day: "Mon Jul 6", text: "Weekly growth report is ready.", unread: false, to: "/analytics", tone: "blue" as const },
+  {
+    id: "n-1",
+    day: "Today",
+    text: "Your Reddit campaign is performing 40% above average.",
+    unread: true,
+    to: "/analytics",
+    tone: "teal" as const,
+  },
+  {
+    id: "n-2",
+    day: "Today",
+    text: "Instagram engagement dropped 14% today.",
+    unread: true,
+    to: "/analytics",
+    tone: "rose" as const,
+  },
+  {
+    id: "n-3",
+    day: "Today",
+    text: "3 influencers match your niche — Maya, Devon, Rina.",
+    unread: true,
+    to: "/discover",
+    tone: "amber" as const,
+  },
+  {
+    id: "n-4",
+    day: "Yesterday",
+    text: "A new competitor 'Stoic Habits' launched on Product Hunt.",
+    unread: false,
+    to: "/strategy",
+    tone: "blue" as const,
+  },
+  {
+    id: "n-5",
+    day: "Yesterday",
+    text: "Product Hunt Launch Week hit 500 upvotes.",
+    unread: false,
+    to: "/campaigns",
+    tone: "teal" as const,
+  },
+  {
+    id: "n-6",
+    day: "Mon Jul 6",
+    text: "Weekly growth report is ready.",
+    unread: false,
+    to: "/analytics",
+    tone: "blue" as const,
+  },
 ];
 
 export const studioTools = [
@@ -195,13 +355,22 @@ export const studioTools = [
 ] as const;
 
 export const sampleAssetContent: Record<string, string> = {
-  "app-store": "Fernly — Calm habits, real momentum.\n\nBuild a morning that holds up on your worst day. Fernly is a science-backed habit tracker for people who are tired of streak apps that punish them for being human.\n\n• Adaptive streaks that survive rest days\n• 90-second daily check-in\n• Beautiful weekly review that actually feels good\n• Private by design — no accounts required\n\nStart with one habit. See what changes in seven days.",
-  "google-play": "Fernly is a calm, science-backed habit tracker built for busy professionals. Track up to 12 habits, review your week in under a minute, and skip the shame — Fernly's adaptive streaks understand that real life has weekends, sick days, and travel. No accounts, no ads, no sold data.",
-  instagram: "Streaks aren't the point. Showing up is.\n\nFernly is a habit tracker that stops punishing you the moment life happens. One check-in a day. A weekly review you'll actually look forward to.\n\n🌿 Now on iOS + Android — link in bio.\n#habits #productivity #wellness #indieapp",
-  linkedin: "I built Fernly because every habit app I tried made me feel worse.\n\nMiss one day → lose a 200-day streak. Skip the app for a week → shame notifications. That's not behavior change. That's a slot machine.\n\nFernly does three things differently:\n1. Streaks that flex around real life\n2. A weekly review that highlights momentum, not gaps\n3. Zero social pressure — it's just for you\n\nWe launched this week. Would love your feedback. 🌿",
-  twitter: "1/ I shipped a habit tracker today, and I want to be honest about why the market needed one more.\n\n2/ Most habit apps treat you like a rat pressing a lever. Streaks. Badges. Guilt notifications. It works — until it doesn't.\n\n3/ Fernly is built on one bet: sustainable > spiky. Adaptive streaks. A weekly review that surfaces wins. No social layer.\n\n4/ 90-second daily check-in. Private by default. Free to start. iOS + Android.\n\n5/ If you've ever rage-quit a habit app, I built this for you 🌿",
-  reddit: "**I rebuilt the habit tracker I always wanted after quitting three of them.**\n\nBackground: I've tried Habitify, Streaks, Way of Life. Every one of them broke me the same way — one missed day and the app punished me into deleting it.\n\nSo I spent 8 months building Fernly. The core idea: streaks should bend, not shatter. A weekly review should show what you *did*, not what you missed.\n\nHappy to answer anything about the design, the retention model, or the launch. Not going to link the app in the post — mods, let me know if that's fine.",
-  email: "Subject: Your first week with Fernly\n\nHey — quick note from the founder.\n\nYou signed up for Fernly seven days ago. If you've checked in even once, you're already ahead of most people who download habit apps.\n\nThree things worth trying this week:\n1. Turn on the Sunday review (Settings → Weekly Review)\n2. Add one \"anchor\" habit tied to coffee or brushing your teeth\n3. Skip a day on purpose. Watch what Fernly does.\n\nReply to this email with what's working and what isn't. I read every one.\n\n— Ana, founder, Fernly",
-  landing: "Hero: Calm habits. Real momentum.\nSub: Fernly is the habit tracker that doesn't punish you for being human. 90 seconds a day. A weekly review you'll actually open.\n\nSection 1 — The problem\nStreak apps are slot machines. Miss one day, lose everything, delete the app. There's a better way.\n\nSection 2 — How Fernly works\nAdaptive streaks. Private by default. Weekly review in under a minute.\n\nCTA: Start with one habit →",
-  producthunt: "Fernly — a habit tracker that doesn't punish you for being human.\n\nFernly is a calm, science-backed habit tracker for people burned out by streak-based apps. Adaptive streaks that survive rest days, a 90-second daily check-in, and a weekly review you'll actually enjoy opening. Private by default. No accounts. Free to start.\n\nMade by two people over 8 months. Would love feedback from the PH community 🌿",
+  "app-store":
+    "Fernly — Calm habits, real momentum.\n\nBuild a morning that holds up on your worst day. Fernly is a science-backed habit tracker for people who are tired of streak apps that punish them for being human.\n\n• Adaptive streaks that survive rest days\n• 90-second daily check-in\n• Beautiful weekly review that actually feels good\n• Private by design — no accounts required\n\nStart with one habit. See what changes in seven days.",
+  "google-play":
+    "Fernly is a calm, science-backed habit tracker built for busy professionals. Track up to 12 habits, review your week in under a minute, and skip the shame — Fernly's adaptive streaks understand that real life has weekends, sick days, and travel. No accounts, no ads, no sold data.",
+  instagram:
+    "Streaks aren't the point. Showing up is.\n\nFernly is a habit tracker that stops punishing you the moment life happens. One check-in a day. A weekly review you'll actually look forward to.\n\n🌿 Now on iOS + Android — link in bio.\n#habits #productivity #wellness #indieapp",
+  linkedin:
+    "I built Fernly because every habit app I tried made me feel worse.\n\nMiss one day → lose a 200-day streak. Skip the app for a week → shame notifications. That's not behavior change. That's a slot machine.\n\nFernly does three things differently:\n1. Streaks that flex around real life\n2. A weekly review that highlights momentum, not gaps\n3. Zero social pressure — it's just for you\n\nWe launched this week. Would love your feedback. 🌿",
+  twitter:
+    "1/ I shipped a habit tracker today, and I want to be honest about why the market needed one more.\n\n2/ Most habit apps treat you like a rat pressing a lever. Streaks. Badges. Guilt notifications. It works — until it doesn't.\n\n3/ Fernly is built on one bet: sustainable > spiky. Adaptive streaks. A weekly review that surfaces wins. No social layer.\n\n4/ 90-second daily check-in. Private by default. Free to start. iOS + Android.\n\n5/ If you've ever rage-quit a habit app, I built this for you 🌿",
+  reddit:
+    "**I rebuilt the habit tracker I always wanted after quitting three of them.**\n\nBackground: I've tried Habitify, Streaks, Way of Life. Every one of them broke me the same way — one missed day and the app punished me into deleting it.\n\nSo I spent 8 months building Fernly. The core idea: streaks should bend, not shatter. A weekly review should show what you *did*, not what you missed.\n\nHappy to answer anything about the design, the retention model, or the launch. Not going to link the app in the post — mods, let me know if that's fine.",
+  email:
+    "Subject: Your first week with Fernly\n\nHey — quick note from the founder.\n\nYou signed up for Fernly seven days ago. If you've checked in even once, you're already ahead of most people who download habit apps.\n\nThree things worth trying this week:\n1. Turn on the Sunday review (Settings → Weekly Review)\n2. Add one \"anchor\" habit tied to coffee or brushing your teeth\n3. Skip a day on purpose. Watch what Fernly does.\n\nReply to this email with what's working and what isn't. I read every one.\n\n— Ana, founder, Fernly",
+  landing:
+    "Hero: Calm habits. Real momentum.\nSub: Fernly is the habit tracker that doesn't punish you for being human. 90 seconds a day. A weekly review you'll actually open.\n\nSection 1 — The problem\nStreak apps are slot machines. Miss one day, lose everything, delete the app. There's a better way.\n\nSection 2 — How Fernly works\nAdaptive streaks. Private by default. Weekly review in under a minute.\n\nCTA: Start with one habit →",
+  producthunt:
+    "Fernly — a habit tracker that doesn't punish you for being human.\n\nFernly is a calm, science-backed habit tracker for people burned out by streak-based apps. Adaptive streaks that survive rest days, a 90-second daily check-in, and a weekly review you'll actually enjoy opening. Private by default. No accounts. Free to start.\n\nMade by two people over 8 months. Would love feedback from the PH community 🌿",
 };

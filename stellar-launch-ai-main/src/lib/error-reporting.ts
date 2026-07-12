@@ -21,7 +21,7 @@ declare global {
 
 export function reportError(error: unknown, context: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
-  
+
   const tracker = window.__errorEvents || window.__lovableEvents;
   tracker?.captureException?.(
     error,
