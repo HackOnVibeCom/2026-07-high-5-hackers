@@ -26,8 +26,10 @@ genuinely useful output — so the product never breaks in a demo.
 | **Strategy** (`/strategy`) | Launch roadmap with checkable tasks. |
 | **Discover** (`/discover`) | Curated competitors, communities, and influencers with bookmarking + an in-context advisor. |
 | **Campaigns** (`/campaigns`, `/campaigns/new`, `/campaigns/$id`) | Create, schedule, and track launch campaigns. |
-| **Analytics** (`/analytics`) | Channel performance and install trends. |
+| **Analytics** (`/analytics`) | Channel performance and install trends, derived live from your dashboard data and campaign activity. |
 | **Simulator** (`/simulator`) | A live "launch week" sandbox that grades your launch and projects installs. |
+| **Growth Agent** (Ask AI button) | Context-aware AI chat (`/api/assistant`) that sees your app + current screen and deep-links its advice to the right page. |
+| **Light / dark mode** | Toggle in the top nav (sun/moon). Dark-first; persisted in `localStorage`, applied pre-paint so there is no flash. |
 
 ---
 
@@ -96,10 +98,22 @@ This repo auto-deploys via `.github/workflows/deploy.yml` on push to `main`:
 1. CI detects the app in `stellar-launch-ai-main/`, runs `npm ci` + `npm run build`.
 2. It publishes the first of `dist / build / out / .output/public` containing an
    `index.html` — here that's **`out/`**.
-3. Cloudflare Pages automatically serves the **`functions/`** directory (adjacent
-   to the publish root) as edge Functions at `/api/*`.
+3. Wrangler bundles Pages Functions from the `functions/` directory at the **repo
+   root** (its working directory). Those files are one-line shims re-exporting the
+   real handlers in [`functions/`](./functions/) here, served at `/api/*`.
 4. A SPA `_redirects` (`/* /index.html 200`) and `_headers` (`no-store`) are added
    by CI so client-side routing and cache-busting work.
+
+### GitHub Pages (free static mirror)
+
+`.github/workflows/gh-pages.yml` also publishes `out/` to GitHub Pages on every
+push to `main` (repo Settings → Pages → Source = **GitHub Actions**, one time).
+The build sets `PUBLIC_BASE_PATH=/<repo>/` so assets and routing work under the
+project-site sub-path, and `make-static.mjs` emits a `404.html` SPA fallback.
+
+> ⚠️ GitHub Pages is **static-only** — the `/api/*` Functions do not run there,
+> so AI features degrade to their built-in defaults. Use the Cloudflare URL as
+> the primary demo link.
 
 **Production env vars** (Cloudflare Pages → Settings → Environment variables):
 
@@ -119,9 +133,11 @@ stellar-launch-ai-main/
 ├── src/
 │   ├── routes/            # File-based routes (TanStack Router)
 │   ├── components/        # UI components (ui/ = shadcn primitives)
+│   ├── hooks/use-theme.tsx # Light/dark theme state (class on <html> + localStorage)
 │   ├── lib/store.ts       # Zustand store + all API actions
+│   ├── lib/chart-theme.ts # Theme-aware Recharts colors (CSS variables)
 │   ├── lib/mock-data.ts   # Seed notifications & demo data
-│   └── styles.css         # Tailwind v4 entry
+│   └── styles.css         # Tailwind v4 entry: tokens, dark skin, light remaps
 ├── functions/
 │   ├── api/*.ts           # Cloudflare Pages Functions (the backend)
 │   └── _lib/              # Shared engine, OpenRouter client, HTTP helpers, directory data

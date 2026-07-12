@@ -21,6 +21,12 @@ Every LLM-backed endpoint has a **deterministic fallback**:
 So a judge running the demo with no key still gets a fully working app; adding a
 key upgrades the copy to live LLM output.
 
+> **Deploy note:** the HackOnVibe CI runs `wrangler pages deploy` from the **repo
+> root**, and Wrangler only bundles Functions from a `functions/` directory in its
+> working directory. The repo-root [`functions/`](../../functions/) therefore
+> contains one-line re-export shims pointing at these files. New endpoint here →
+> add a matching shim there.
+
 ## Endpoints
 
 | Route | Method | Body / Query | Returns |
@@ -29,6 +35,7 @@ key upgrades the copy to live LLM output.
 | `/api/launch-health-score` | `POST` | `AppContext` | `{ score, breakdown{asoQuality,contentReadiness,campaignExecution,communityPresence}, summary }` |
 | `/api/recommendations` | `POST` | `AppContext` | `Recommendation[]` (`finding, cause, recommendation, confidence, expected_impact, tone`) |
 | `/api/generate-content` | `POST` | `{ name, category, description }` | `{ aso{title,subtitle,keywords[],longDescription}, social[], source }` |
+| `/api/assistant` | `POST` | `{ question, screen, app{name,category,description}, history[] }` | `{ text, action{label,to}\|null, source }` — the in-app Growth Agent chat |
 | `/api/competitors` | `GET` | — | curated competitor list |
 | `/api/communities` | `GET` | — | curated community list |
 | `/api/influencers` | `GET` | — | curated influencer list |
@@ -63,6 +70,7 @@ functions/
 │   ├── launch-health-score.ts   POST — readiness score
 │   ├── recommendations.ts       POST — growth advisor (LLM + fallback)
 │   ├── generate-content.ts      POST — ASO + social package (LLM + fallback)
+│   ├── assistant.ts             POST — Growth Agent chat (LLM + fallback)
 │   ├── competitors.ts           GET  — directory
 │   ├── communities.ts           GET  — directory
 │   └── influencers.ts           GET  — directory
