@@ -1,0 +1,198 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { ArrowRight, Sparkles, TrendingUp, Users, Rocket } from "lucide-react";
+import { useApp, useActiveWorkspace } from "../lib/store";
+import { insights } from "../lib/mock-data";
+
+export const Route = createFileRoute("/")({
+  component: Home,
+});
+
+const toneMap: Record<string, string> = {
+  teal: "border-teal-200 bg-teal-50",
+  amber: "border-amber-200 bg-amber-50",
+  blue: "border-blue-200 bg-blue-50",
+  rose: "border-rose-200 bg-rose-50",
+};
+const toneText: Record<string, string> = {
+  teal: "text-teal-800",
+  amber: "text-amber-800",
+  blue: "text-blue-800",
+  rose: "text-rose-800",
+};
+
+function Home() {
+  const onboarded = useApp((s) => s.onboarded);
+  const nav = useNavigate();
+  const ws = useActiveWorkspace();
+  const campaigns = useApp((s) => s.campaigns);
+
+  if (!onboarded) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center text-center">
+        <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">
+          <Sparkles className="h-3 w-3" /> Your AI Growth Agent
+        </span>
+        <h1 className="font-display text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl">
+          Welcome to LaunchPilot AI.
+          <br />
+          Let's launch your app.
+        </h1>
+        <p className="mt-4 max-w-md text-neutral-600">
+          Take {ws?.name ?? "your app"} from day one to its first 10,000 users — strategy, assets,
+          campaigns and growth insights, on autopilot.
+        </p>
+        <button
+          onClick={() => nav({ to: "/onboarding" })}
+          className="mt-8 inline-flex items-center gap-2 rounded-md bg-amber-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-600"
+        >
+          Get started <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  }
+
+  const running = campaigns.filter((c) => c.status === "running").length;
+  const drafts = campaigns.filter((c) => c.status === "draft").length;
+
+  return (
+    <div className="space-y-10">
+      <section>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-sm text-neutral-500">Growth report — Sunday, Jul 12</p>
+            <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight text-neutral-900">
+              Good morning. Here's what {ws?.name} should do next.
+            </h1>
+          </div>
+          <Link
+            to="/campaigns"
+            className="hidden shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-sm text-neutral-800 hover:bg-neutral-100 sm:inline-block"
+          >
+            View all campaigns
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <MiniStat label="New installs (7d)" value="1,284" delta="+18.2%" positive />
+          <MiniStat label="Activation rate" value="42.6%" delta="-2.1%" />
+          <MiniStat label="Running campaigns" value={String(running)} delta={`${drafts} drafts`} />
+          <MiniStat label="Product Hunt rank" value="#4" delta="Top 5 today" positive />
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-4 flex items-center gap-2">
+          <div className="grid h-7 w-7 place-items-center rounded-md bg-amber-500 text-white">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <h2 className="text-lg font-semibold text-neutral-900">Growth Advisor</h2>
+          <span className="ml-1 text-sm text-neutral-500">— ranked by impact this week</span>
+        </div>
+        <div className="grid gap-3">
+          {insights.map((i, idx) => (
+            <motion.div
+              key={i.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.06 }}
+              className={`flex flex-col gap-4 rounded-xl border ${toneMap[i.tone]} p-5 sm:flex-row sm:items-center`}
+            >
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm sm:text-base ${toneText[i.tone]}`}>{i.text}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
+                    {Math.round(i.confidence * 100)}% confidence
+                  </span>
+                  <span className="rounded-full bg-white/60 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
+                    {i.impact}
+                  </span>
+                </div>
+              </div>
+              <Link
+                to={i.to}
+                className="shrink-0 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-neutral-900 shadow-sm hover:bg-neutral-100"
+              >
+                {i.action}
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <QuickCard
+          icon={<Rocket className="h-4 w-4" />}
+          title="Launch checklist"
+          body="4 of 7 items ready for your Product Hunt push."
+          to="/strategy"
+        />
+        <QuickCard
+          icon={<Users className="h-4 w-4" />}
+          title="Influencer shortlist"
+          body="6 creators at 84%+ audience match."
+          to="/discover"
+        />
+        <QuickCard
+          icon={<TrendingUp className="h-4 w-4" />}
+          title="Analytics"
+          body="Reddit is out-performing paid Meta 3:1."
+          to="/analytics"
+        />
+      </section>
+    </div>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+  delta,
+  positive,
+}: {
+  label: string;
+  value: string;
+  delta: string;
+  positive?: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="text-xs text-neutral-500">{label}</div>
+      <div className="mt-1 font-display text-2xl font-semibold text-neutral-900">{value}</div>
+      <div
+        className={`mt-1 inline-flex rounded px-1.5 py-0.5 font-mono text-[11px] ${
+          positive ? "bg-teal-100 text-teal-800" : "bg-neutral-100 text-neutral-600"
+        }`}
+      >
+        {delta}
+      </div>
+    </div>
+  );
+}
+
+function QuickCard({
+  icon,
+  title,
+  body,
+  to,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  to: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="group rounded-xl border border-neutral-200 bg-white p-5 transition hover:border-neutral-300 hover:shadow-sm"
+    >
+      <div className="flex items-center gap-2 text-sm font-medium text-neutral-900">
+        <span className="grid h-7 w-7 place-items-center rounded-md bg-neutral-100 text-neutral-700 group-hover:bg-amber-50 group-hover:text-amber-800">
+          {icon}
+        </span>
+        {title}
+      </div>
+      <p className="mt-2 text-sm text-neutral-600">{body}</p>
+    </Link>
+  );
+}
