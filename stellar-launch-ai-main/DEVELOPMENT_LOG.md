@@ -9,3 +9,4 @@
 * 2026-07-12 23:58:19 - docs: note on bundler and package management setup (Bun)
 * 2026-07-12 23:58:23 - docs: note on code linting and formatting configuration
 * 2026-07-12 23:58:29 - docs: note on performance profiling and lazy loading routes
+* 2026-07-12 23:58:33 - docs: note on setting up TanStack Router and Root shell
