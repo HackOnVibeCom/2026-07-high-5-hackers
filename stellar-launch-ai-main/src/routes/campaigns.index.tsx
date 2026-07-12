@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Calendar, DollarSign } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Calendar, DollarSign, Megaphone } from "lucide-react";
 import { useApp, type Campaign } from "../lib/store";
 
 export const Route = createFileRoute("/campaigns/")({
@@ -48,43 +49,59 @@ function Campaigns() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <motion.header
+        className="flex flex-wrap items-end justify-between gap-4"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div>
-          <p className="text-sm text-neutral-500">Campaigns</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Megaphone className="h-4 w-4" />
+            </div>
+            <p className="text-sm text-neutral-500">Campaigns</p>
+          </div>
           <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900">
             Every launch, in one place.
           </h1>
         </div>
         <Link
           to="/campaigns/new"
-          className="inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.03] active:scale-[0.97]"
         >
           <Plus className="h-4 w-4" /> New campaign
         </Link>
-      </header>
+      </motion.header>
 
-      <div className="flex gap-1 border-b border-neutral-200">
+      <div className="flex gap-1 border-b border-white/8">
         {(["all", "draft", "scheduled", "running", "completed"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`relative px-3 py-2 text-sm capitalize ${
-              filter === f ? "text-neutral-900" : "text-neutral-500 hover:text-neutral-800"
+            className={`relative px-3 py-2 text-sm capitalize transition-colors ${
+              filter === f ? "text-neutral-900 font-semibold" : "text-neutral-500 hover:text-neutral-800"
             }`}
           >
             {f}
             {filter === f && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-amber-500" />
+              <motion.span
+                layoutId="campaign-tab"
+                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-amber-500"
+              />
             )}
           </button>
         ))}
       </div>
 
       <div className="grid gap-3">
-        {filtered.map((c) => (
-          <div
+        {filtered.map((c, i) => (
+          <motion.div
             key={c.id}
-            className="rounded-xl border border-neutral-200 bg-white p-5 transition hover:border-neutral-300 hover:shadow-sm"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05, duration: 0.4 }}
+            className="rounded-2xl border border-neutral-200 bg-white p-5 transition-all duration-300 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5"
           >
             <div className="flex flex-wrap items-center gap-4">
               <div className="min-w-0 flex-1">
@@ -126,7 +143,7 @@ function Campaigns() {
                 Open
               </Link>
             </div>
-          </div>
+          </motion.div>
         ))}
         {filtered.length === 0 && (
           <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center">

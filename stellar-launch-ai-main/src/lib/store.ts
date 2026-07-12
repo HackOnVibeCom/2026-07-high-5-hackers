@@ -58,6 +58,23 @@ export type AssistantMessage = {
   action?: { label: string; to: string };
 };
 
+export type QueueItem = {
+  id: string;
+  platform: string;
+  status: "checking" | "formatting" | "publishing" | "done" | "error";
+  text: string;
+  ts: number;
+};
+
+export type SimulatorData = {
+  isRunning: boolean;
+  currentDay: number;
+  statsLog: string[];
+  simulatedDailyData: { day: string; installs: number; ctr: number; rank: number }[];
+  finalGrade: string;
+  finalInstalls: number;
+};
+
 type State = {
   onboarded: boolean;
   activeStage: OnboardingStage;
@@ -67,6 +84,10 @@ type State = {
   campaigns: Campaign[];
   notifications: Notification[];
   savedInfluencers: string[];
+  savedCommunities: string[];
+  appliedRecommendations: string[];
+  ignoredRecommendations: string[];
+  savedRecommendations: string[];
   studioDrafts: Record<string, StudioDraft>;
   roadmapDone: Record<string, boolean>;
   assistantMessages: AssistantMessage[];
@@ -80,6 +101,21 @@ type State = {
   communitiesData: any[];
   influencersData: any[];
   generatingPackage: boolean;
+
+  // Connected Social Accounts
+  socialAccounts: Record<string, boolean>;
+  toggleSocialAccount: (platform: string) => void;
+
+  // Publishing Queue
+  publishingQueue: QueueItem[];
+  publishAssetViaQueue: (slug: string) => Promise<void>;
+
+  // Live Sandbox Launch Simulator
+  simulator: SimulatorData;
+  startSimulation: () => void;
+  resetSimulation: () => void;
+  updateSimulatorData: (day: number, installs: number, ctr: number, rank: number, logMessage: string) => void;
+  finishSimulation: (grade: string, finalInstalls: number) => void;
 
   // Onboarding & workspace
   setOnboarded: (v: boolean) => void;
@@ -99,6 +135,10 @@ type State = {
 
   // Discover
   toggleInfluencerBookmark: (handle: string) => void;
+  toggleCommunityBookmark: (name: string) => void;
+  applyRecommendation: (id: string) => void;
+  ignoreRecommendation: (id: string) => void;
+  saveRecommendation: (id: string) => void;
 
   // Studio
   saveStudioDraft: (type: string, draft: StudioDraft) => void;
@@ -156,7 +196,7 @@ const defaultCampaigns: Campaign[] = [
     name: "Product Hunt Launch Week",
     platforms: ["Product Hunt", "Twitter", "LinkedIn"],
     status: "running",
-    launchDate: "2026-07-14",
+    launchDate: new Date().toISOString().split("T")[0],
     budget: 800,
     spark: [12, 18, 22, 31, 28, 42, 51, 47, 62, 71],
     audience: "Indie hackers and productivity enthusiasts, 25–40",
@@ -196,6 +236,36 @@ const defaultCampaigns: Campaign[] = [
   },
 ];
 
+// Helper to bundle active app ASO/Copy metadata to send to Stateless backend
+const getContextPayload = (state: any) => {
+  const ws = state.workspaces.find((w: any) => w.id === state.activeWorkspaceId) || state.workspaces[0];
+  
+  // Extract ASO details
+  const asoText = state.studioDrafts["app-store"]?.text || "";
+  const lines = asoText.split("\n").filter((l: string) => l.trim().length > 0);
+  const asoTitle = lines[0] || "";
+  const asoSubtitle = lines[1] || "";
+  const asoKeywords = asoText.includes("Keywords: ") 
+    ? asoText.split("Keywords: ")[1]?.split(",").map((k: string) => k.trim()) 
+    : [];
+
+  const socialDrafts = Object.entries(state.studioDrafts)
+    .filter(([key]) => ["reddit", "twitter", "linkedin", "instagram", "tiktok"].includes(key))
+    .map(([key, val]: any) => ({ platform: key, text: val.text }));
+
+  return {
+    name: ws.name,
+    description: ws.description,
+    category: ws.category,
+    asoTitle,
+    asoSubtitle,
+    asoKeywords,
+    socialDrafts,
+    campaigns: state.campaigns,
+    completedStages: state.completedStages
+  };
+};
+
 export const useApp = create<State>()(
   persist(
     (set, get) => ({
@@ -207,6 +277,10 @@ export const useApp = create<State>()(
       campaigns: defaultCampaigns,
       notifications: defaultNotifications.map((n) => ({ ...n })),
       savedInfluencers: [],
+      savedCommunities: [],
+      appliedRecommendations: [],
+      ignoredRecommendations: [],
+      savedRecommendations: [],
       studioDrafts: {},
       roadmapDone: {},
       assistantMessages: [],
@@ -220,6 +294,163 @@ export const useApp = create<State>()(
       communitiesData: [],
       influencersData: [],
       generatingPackage: false,
+
+      // Social Accounts linkages
+      socialAccounts: { reddit: false, twitter: false, linkedin: false, producthunt: false },
+      toggleSocialAccount: (platform) =>
+        set((st) => ({
+          socialAccounts: {
+            ...st.socialAccounts,
+            [platform]: !st.socialAccounts[platform]
+          }
+        })),
+
+      // Publishing queue implementations (Simulated concurrency loops)
+      publishingQueue: [],
+      publishAssetViaQueue: async (slug) => {
+        const platformMap: Record<string, string> = {
+          "app-store": "App Store",
+          "google-play": "Google Play",
+          "instagram": "Instagram",
+          "linkedin": "LinkedIn",
+          "twitter": "Twitter",
+          "reddit": "Reddit",
+          "email": "Email",
+          "landing": "Landing Page",
+          "producthunt": "Product Hunt"
+        };
+        const platform = platformMap[slug] || "Social";
+        const draft = get().studioDrafts[slug];
+        if (!draft) return;
+
+        const queueId = `q-${Date.now()}`;
+        const newQueueItem: QueueItem = {
+          id: queueId,
+          platform,
+          status: "checking",
+          text: draft.text,
+          ts: Date.now()
+        };
+
+        set((st) => ({
+          publishingQueue: [newQueueItem, ...st.publishingQueue]
+        }));
+
+        // Day 1 check logic
+        await new Promise((res) => setTimeout(res, 800));
+        set((st) => ({
+          publishingQueue: st.publishingQueue.map((item) =>
+            item.id === queueId ? { ...item, status: "formatting" as const } : item
+          )
+        }));
+
+        // Format checks
+        await new Promise((res) => setTimeout(res, 800));
+        set((st) => ({
+          publishingQueue: st.publishingQueue.map((item) =>
+            item.id === queueId ? { ...item, status: "publishing" as const } : item
+          )
+        }));
+
+        // Send api payloads
+        await new Promise((res) => setTimeout(res, 800));
+        set((st) => ({
+          publishingQueue: st.publishingQueue.map((item) =>
+            item.id === queueId ? { ...item, status: "done" as const } : item
+          )
+        }));
+
+        // Add campaign
+        const newCampaign: Campaign = {
+          id: `c-api-${Date.now()}`,
+          name: `Published: ${platform} Post`,
+          platforms: [platform],
+          status: "running",
+          launchDate: new Date().toISOString().split("T")[0],
+          budget: 0,
+          spark: [10, 22, 18, 32, 45, 56],
+          audience: "Live community distribution",
+          asset: draft.text
+        };
+
+        set((st) => ({
+          campaigns: [newCampaign, ...st.campaigns]
+        }));
+
+        get().addNotification({
+          id: `n-pub-${Date.now()}`,
+          day: "Today",
+          text: `Success: content asset published successfully on ${platform}!`,
+          unread: true,
+          to: "/campaigns",
+          tone: "teal"
+        });
+
+        await get().fetchDashboard();
+        await get().fetchHealthScore();
+      },
+
+      // Launch simulator implementations
+      simulator: {
+        isRunning: false,
+        currentDay: 0,
+        statsLog: ["Simulator ready. Tweak ASO copy and schedule campaigns, then click launch."],
+        simulatedDailyData: [],
+        finalGrade: "",
+        finalInstalls: 0
+      },
+      startSimulation: () =>
+        set((st) => ({
+          simulator: {
+            ...st.simulator,
+            isRunning: true,
+            currentDay: 0,
+            statsLog: ["Simulation initiated: starting launch week sequence..."],
+            simulatedDailyData: []
+          }
+        })),
+      resetSimulation: () =>
+        set((st) => ({
+          simulator: {
+            isRunning: false,
+            currentDay: 0,
+            statsLog: ["Simulator ready. Tweak ASO copy and schedule campaigns, then click launch."],
+            simulatedDailyData: [],
+            finalGrade: "",
+            finalInstalls: 0
+          }
+        })),
+      updateSimulatorData: (day, installs, ctr, rank, logMessage) =>
+        set((st) => {
+          const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+          const newDayData = {
+            day: daysOfWeek[day - 1] || `Day ${day}`,
+            installs,
+            ctr,
+            rank
+          };
+          return {
+            simulator: {
+              ...st.simulator,
+              currentDay: day,
+              statsLog: [...st.simulator.statsLog, logMessage],
+              simulatedDailyData: [...st.simulator.simulatedDailyData, newDayData]
+            }
+          };
+        }),
+      finishSimulation: (grade, finalInstalls) =>
+        set((st) => ({
+          simulator: {
+            ...st.simulator,
+            isRunning: false,
+            finalGrade: grade,
+            finalInstalls: finalInstalls,
+            statsLog: [
+              ...st.simulator.statsLog,
+              `Simulation completed! Grade: ${grade}. Cumulative installations: ${finalInstalls}.`
+            ]
+          }
+        })),
 
       // Onboarding & workspace
       setOnboarded: (v) => set({ onboarded: v }),
@@ -263,6 +494,26 @@ export const useApp = create<State>()(
             ? st.savedInfluencers.filter((h) => h !== handle)
             : [...st.savedInfluencers, handle],
         })),
+      toggleCommunityBookmark: (name) =>
+        set((st) => ({
+          savedCommunities: st.savedCommunities.includes(name)
+            ? st.savedCommunities.filter((n) => n !== name)
+            : [...st.savedCommunities, name],
+        })),
+      applyRecommendation: (id) =>
+        set((st) => ({
+          appliedRecommendations: [...st.appliedRecommendations, id]
+        })),
+      ignoreRecommendation: (id) =>
+        set((st) => ({
+          ignoredRecommendations: [...st.ignoredRecommendations, id]
+        })),
+      saveRecommendation: (id) =>
+        set((st) => ({
+          savedRecommendations: st.savedRecommendations.includes(id)
+            ? st.savedRecommendations.filter((x) => x !== id)
+            : [...st.savedRecommendations, id]
+        })),
 
       // Studio
       saveStudioDraft: (type, draft) =>
@@ -279,14 +530,19 @@ export const useApp = create<State>()(
       // Assistant
       setAssistantMessages: (msgs) => set({ assistantMessages: msgs }),
 
-      // API Actions
+      // API Actions (Connected to Dynamic Serverless Endpoints)
       fetchDashboard: async () => {
         set({ dashboardLoading: true });
         try {
-          const res = await fetch("/api/dashboard");
+          const payload = getContextPayload(get());
+          const res = await fetch("/api/dashboard", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
           if (res.ok) {
             const data = await res.json();
-            set({ dashboardData: data, campaigns: data.campaigns || [] });
+            set({ dashboardData: data });
           }
         } catch (e) {
           console.error("fetchDashboard failed", e);
@@ -295,18 +551,12 @@ export const useApp = create<State>()(
         }
       },
       fetchRecommendations: async () => {
-        const state = get();
-        const ws = state.workspaces.find((w) => w.id === state.activeWorkspaceId) || state.workspaces[0];
         try {
+          const payload = getContextPayload(get());
           const res = await fetch("/api/recommendations", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: ws.name,
-              description: ws.description,
-              installsTrend: state.dashboardData?.installsTrend || [82, 214, 168, 242, 198, 158, 222],
-              ctr: state.dashboardData?.ctr || 4.6
-            })
+            body: JSON.stringify(payload)
           });
           if (res.ok) {
             const data = await res.json();
@@ -317,19 +567,12 @@ export const useApp = create<State>()(
         }
       },
       fetchHealthScore: async () => {
-        const state = get();
-        const runningCampaigns = state.campaigns.filter((c) => c.status === "running").length;
-        const completedStages = state.completedStages.length;
-        const hasAso = Object.keys(state.studioDrafts).length > 0;
         try {
+          const payload = getContextPayload(get());
           const res = await fetch("/api/launch-health-score", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              runningCampaigns,
-              completedStages,
-              hasAso
-            })
+            body: JSON.stringify(payload)
           });
           if (res.ok) {
             const data = await res.json();
@@ -417,43 +660,11 @@ export const useApp = create<State>()(
         }
       },
       approveAndPublishAsset: async (slug: string) => {
-        const state = get();
-        const draft = state.studioDrafts[slug];
-        if (!draft) return;
-
-        const platformMap: Record<string, string> = {
-          "app-store": "App Store",
-          "google-play": "Google Play",
-          "instagram": "Instagram",
-          "linkedin": "LinkedIn",
-          "twitter": "Twitter",
-          "reddit": "Reddit",
-          "email": "Email",
-          "landing": "Landing Page",
-          "producthunt": "Product Hunt"
-        };
-        const platform = platformMap[slug] || "Social";
-
-        const newCampaign: Campaign = {
-          id: `c-api-${Date.now()}`,
-          name: `Approved: ${platform} Launch Draft`,
-          platforms: [platform],
-          status: "running",
-          launchDate: new Date().toISOString().split("T")[0],
-          budget: 0,
-          spark: [10, 15, 25, 30, 28, 45, 52],
-          audience: "Live audience engaged",
-          asset: draft.text
-        };
-
-        set((st) => ({
-          campaigns: [newCampaign, ...st.campaigns]
-        }));
-        
-        await get().fetchHealthScore();
+        // Redirect to the simulated background publishing worker queue
+        await get().publishAssetViaQueue(slug);
       },
     }),
-    { name: "launchpilot-state" },
+    { name: "launchpilot-state-v2" },
   ),
 );
 

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Check, X, Sparkles, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, X, Sparkles, ArrowRight, Target } from "lucide-react";
 import { competitors as mockCompetitors, roadmap } from "../lib/mock-data";
 import { useActiveWorkspace, useApp } from "../lib/store";
 
@@ -16,33 +17,55 @@ function Strategy() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm text-neutral-500">Strategy</p>
+      <motion.header
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <Target className="h-4 w-4" />
+          </div>
+          <p className="text-sm text-neutral-500">Strategy</p>
+        </div>
         <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900">
           What we know about {ws?.name}, and what to do about it.
         </h1>
-      </header>
+      </motion.header>
 
-      <div className="flex gap-1 border-b border-neutral-200">
+      <div className="flex gap-1 border-b border-white/8">
         {(["overview", "competitors", "roadmap"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`relative px-4 py-2.5 text-sm capitalize ${
-              tab === t ? "text-neutral-900" : "text-neutral-500 hover:text-neutral-800"
+            className={`relative px-4 py-2.5 text-sm capitalize transition-colors ${
+              tab === t ? "text-neutral-900 font-semibold" : "text-neutral-500 hover:text-neutral-800"
             }`}
           >
             {t}
             {tab === t && (
-              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-amber-500" />
+              <motion.span
+                layoutId="strategy-tab"
+                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-amber-500"
+              />
             )}
           </button>
         ))}
       </div>
 
-      {tab === "overview" && <Overview />}
-      {tab === "competitors" && <Competitors />}
-      {tab === "roadmap" && <Roadmap />}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.3 }}
+        >
+          {tab === "overview" && <Overview />}
+          {tab === "competitors" && <Competitors />}
+          {tab === "roadmap" && <Roadmap />}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -145,7 +168,7 @@ function Competitors() {
 
             <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
               <ul className="space-y-1.5">
-                {c.strengths.map((s) => (
+                {c.strengths.map((s: string) => (
                   <li key={s} className="flex gap-1.5 text-neutral-700">
                     <Check className="mt-0.5 h-3.5 w-3.5 text-teal-600" />
                     {s}
@@ -153,7 +176,7 @@ function Competitors() {
                 ))}
               </ul>
               <ul className="space-y-1.5">
-                {c.weaknesses.map((s) => (
+                {c.weaknesses.map((s: string) => (
                   <li key={s} className="flex gap-1.5 text-neutral-700">
                     <X className="mt-0.5 h-3.5 w-3.5 text-rose-500" />
                     {s}
@@ -164,7 +187,7 @@ function Competitors() {
 
             <div className="mt-4 space-y-2">
               <div className="flex flex-wrap gap-1.5">
-                {c.channels.map((ch) => (
+                {c.channels.map((ch: string) => (
                   <span
                     key={ch}
                     className="rounded bg-neutral-100 px-2 py-0.5 font-mono text-[11px] text-neutral-700"
@@ -174,7 +197,7 @@ function Competitors() {
                 ))}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {c.keywords.map((k) => (
+                {c.keywords.map((k: string) => (
                   <span
                     key={k}
                     className="rounded bg-blue-50 px-2 py-0.5 font-mono text-[11px] text-blue-800"

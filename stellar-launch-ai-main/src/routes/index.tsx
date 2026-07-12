@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import {
   ArrowRight,
   Sparkles,
@@ -21,6 +21,201 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+function Interactive3DScene() {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x, { stiffness: 120, damping: 15 });
+  const mouseYSpring = useSpring(y, { stiffness: 120, damping: 15 });
+
+  const rotateX = useTransform(mouseYSpring, [-280, 280], [25, -25]);
+  const rotateY = useTransform(mouseXSpring, [-280, 280], [-25, 25]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left - width / 2;
+    const mouseY = e.clientY - rect.top - height / 2;
+    x.set(mouseX);
+    y.set(mouseY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <div
+      className="perspective-container relative h-[560px] w-full max-w-[560px]"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <motion.div
+        className="preserve-3d-scene relative h-full w-full"
+        style={{ rotateX, rotateY }}
+      >
+        {/* Base grid */}
+        <div className="layer-grid absolute inset-6 rounded-3xl border border-white/5 bg-slate-900/40 shadow-2xl" />
+
+        {/* Card: ASO Package */}
+        <motion.div
+          className="layer-card-1 absolute -left-4 top-12 w-64 rounded-2xl border border-white/10 bg-slate-950/85 p-5 shadow-2xl backdrop-blur-sm"
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-teal-400 animate-pulse" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-teal-400">
+              Store Metadata
+            </span>
+          </div>
+          <p className="mt-3 font-display text-sm font-semibold text-white">
+            ASO Launch Package
+          </p>
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-neutral-500 w-10">Title</span>
+              <div className="h-2 flex-1 rounded-full bg-amber-500/50" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-neutral-500 w-10">Sub</span>
+              <div className="h-2 w-4/5 rounded-full bg-amber-500/30" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-neutral-500 w-10">Keys</span>
+              <div className="h-2 w-3/5 rounded-full bg-amber-500/20" />
+            </div>
+          </div>
+          <div className="mt-4 flex gap-1.5">
+            {["Reddit", "LinkedIn", "Twitter"].map((p) => (
+              <span
+                key={p}
+                className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] text-neutral-400"
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Card: Health Score */}
+        <motion.div
+          className="layer-card-2 absolute right-0 top-6 w-52 rounded-2xl border border-white/10 bg-slate-950/85 p-5 shadow-2xl backdrop-blur-sm"
+          animate={{ y: [0, 5, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-400">
+            Health Score
+          </span>
+          <div className="mt-3 flex items-center justify-center">
+            <svg className="h-20 w-20" viewBox="0 0 36 36">
+              <path
+                strokeWidth="3"
+                stroke="rgba(255,255,255,0.06)"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <motion.path
+                strokeDasharray="78, 100"
+                strokeWidth="3"
+                strokeLinecap="round"
+                stroke="#DE8C21"
+                fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                initial={{ strokeDasharray: "0, 100" }}
+                animate={{ strokeDasharray: "78, 100" }}
+                transition={{ duration: 2, delay: 1, ease: "easeOut" }}
+              />
+              <text
+                x="18"
+                y="20.5"
+                textAnchor="middle"
+                fill="white"
+                fontSize="8"
+                fontWeight="bold"
+                fontFamily="var(--font-display)"
+              >
+                78
+              </text>
+            </svg>
+          </div>
+        </motion.div>
+
+        {/* Card: Growth Analytics */}
+        <motion.div
+          className="absolute -right-2 bottom-16 w-64 rounded-2xl border border-white/10 bg-slate-950/85 p-5 shadow-2xl backdrop-blur-sm"
+          animate={{ y: [0, -4, 0], x: [0, 3, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transform: "translateZ(90px)" }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
+              Growth Analytics
+            </span>
+            <span className="rounded-full bg-teal-500/20 px-2 py-0.5 text-[10px] font-bold text-teal-400">
+              +18.4%
+            </span>
+          </div>
+          <div className="mt-4 flex items-end gap-1.5 h-16">
+            {[28, 35, 42, 38, 55, 62, 78, 85].map((h, i) => (
+              <motion.div
+                key={i}
+                className="flex-1 rounded-sm bg-gradient-to-t from-amber-600/80 to-amber-400/60"
+                initial={{ height: 0 }}
+                animate={{ height: `${h}%` }}
+                transition={{ duration: 0.6, delay: 1.2 + i * 0.08, ease: "easeOut" }}
+              />
+            ))}
+          </div>
+          <div className="mt-3 flex justify-between text-[9px] text-neutral-500">
+            <span>Mon</span>
+            <span>Today</span>
+          </div>
+        </motion.div>
+
+        {/* Card: AI Recommendation */}
+        <motion.div
+          className="absolute -left-2 bottom-8 w-56 rounded-2xl border border-teal-500/20 bg-slate-950/85 p-4 shadow-2xl backdrop-blur-sm"
+          animate={{ y: [0, 4, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          style={{ transform: "translateZ(120px)" }}
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-teal-400">
+              AI Advisor
+            </span>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-neutral-300">
+            "Your Reddit CTR is 3× higher than paid Meta. Shift 20% budget to organic community posts."
+          </p>
+          <div className="mt-2 flex gap-2">
+            <span className="rounded bg-teal-500/15 px-1.5 py-0.5 text-[9px] text-teal-400">
+              92% confidence
+            </span>
+            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] text-amber-400">
+              +15% CTR
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Rocket Core */}
+        <div className="layer-rocket absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <motion.div
+            className="glow-pulse grid h-20 w-20 place-items-center rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 shadow-2xl shadow-amber-500/30"
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Rocket className="h-10 w-10 text-white" />
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 const toneMap: Record<string, string> = {
   teal: "border-teal-200 bg-teal-50",
   amber: "border-amber-200 bg-amber-50",
@@ -41,11 +236,11 @@ const stagger = {
 };
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } },
 };
 const fadeScale = {
   hidden: { opacity: 0, scale: 0.92 },
-  show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 /* ─── Feature Items ─── */
@@ -188,172 +383,14 @@ function Home() {
               </motion.div>
             </motion.div>
 
-            {/* Right — 3D Dashboard Visual */}
+            {/* Right — Interactive 3D Dashboard Visual */}
             <motion.div
               className="relative hidden lg:col-span-7 lg:flex items-center justify-center"
               initial={{ opacity: 0, x: 60 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             >
-              <div className="perspective-container relative h-[560px] w-full max-w-[560px]">
-                <div className="preserve-3d-scene relative h-full w-full">
-                  {/* Base grid */}
-                  <div className="layer-grid absolute inset-6 rounded-3xl border border-white/5 bg-slate-900/40 shadow-2xl" />
-
-                  {/* Card: ASO Package */}
-                  <motion.div
-                    className="layer-card-1 absolute -left-4 top-12 w-64 rounded-2xl border border-white/10 bg-slate-950/85 p-5 shadow-2xl backdrop-blur-sm"
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-teal-400 animate-pulse" />
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-teal-400">
-                        Store Metadata
-                      </span>
-                    </div>
-                    <p className="mt-3 font-display text-sm font-semibold text-white">
-                      ASO Launch Package
-                    </p>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-neutral-500 w-10">Title</span>
-                        <div className="h-2 flex-1 rounded-full bg-amber-500/50" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-neutral-500 w-10">Sub</span>
-                        <div className="h-2 w-4/5 rounded-full bg-amber-500/30" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-neutral-500 w-10">Keys</span>
-                        <div className="h-2 w-3/5 rounded-full bg-amber-500/20" />
-                      </div>
-                    </div>
-                    <div className="mt-4 flex gap-1.5">
-                      {["Reddit", "LinkedIn", "Twitter"].map((p) => (
-                        <span
-                          key={p}
-                          className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] text-neutral-400"
-                        >
-                          {p}
-                        </span>
-                      ))}
-                    </div>
-                  </motion.div>
-
-                  {/* Card: Health Score */}
-                  <motion.div
-                    className="layer-card-2 absolute right-0 top-6 w-52 rounded-2xl border border-white/10 bg-slate-950/85 p-5 shadow-2xl backdrop-blur-sm"
-                    animate={{ y: [0, 5, 0] }}
-                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-amber-400">
-                      Health Score
-                    </span>
-                    <div className="mt-3 flex items-center justify-center">
-                      <svg className="h-20 w-20" viewBox="0 0 36 36">
-                        <path
-                          strokeWidth="3"
-                          stroke="rgba(255,255,255,0.06)"
-                          fill="none"
-                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        />
-                        <motion.path
-                          strokeDasharray="78, 100"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          stroke="#DE8C21"
-                          fill="none"
-                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          initial={{ strokeDasharray: "0, 100" }}
-                          animate={{ strokeDasharray: "78, 100" }}
-                          transition={{ duration: 2, delay: 1, ease: "easeOut" }}
-                        />
-                        <text
-                          x="18"
-                          y="20.5"
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize="8"
-                          fontWeight="bold"
-                          fontFamily="var(--font-display)"
-                        >
-                          78
-                        </text>
-                      </svg>
-                    </div>
-                  </motion.div>
-
-                  {/* Card: Growth Analytics */}
-                  <motion.div
-                    className="absolute -right-2 bottom-16 w-64 rounded-2xl border border-white/10 bg-slate-950/85 p-5 shadow-2xl backdrop-blur-sm"
-                    animate={{ y: [0, -4, 0], x: [0, 3, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    style={{ transform: "translateZ(90px)" }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
-                        Growth Analytics
-                      </span>
-                      <span className="rounded-full bg-teal-500/20 px-2 py-0.5 text-[10px] font-bold text-teal-400">
-                        +18.4%
-                      </span>
-                    </div>
-                    <div className="mt-4 flex items-end gap-1.5 h-16">
-                      {[28, 35, 42, 38, 55, 62, 78, 85].map((h, i) => (
-                        <motion.div
-                          key={i}
-                          className="flex-1 rounded-sm bg-gradient-to-t from-amber-600/80 to-amber-400/60"
-                          initial={{ height: 0 }}
-                          animate={{ height: `${h}%` }}
-                          transition={{ duration: 0.6, delay: 1.2 + i * 0.08, ease: "easeOut" }}
-                        />
-                      ))}
-                    </div>
-                    <div className="mt-3 flex justify-between text-[9px] text-neutral-500">
-                      <span>Mon</span>
-                      <span>Today</span>
-                    </div>
-                  </motion.div>
-
-                  {/* Card: AI Recommendation */}
-                  <motion.div
-                    className="absolute -left-2 bottom-8 w-56 rounded-2xl border border-teal-500/20 bg-slate-950/85 p-4 shadow-2xl backdrop-blur-sm"
-                    animate={{ y: [0, 4, 0] }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    style={{ transform: "translateZ(120px)" }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5 text-teal-400" />
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-teal-400">
-                        AI Advisor
-                      </span>
-                    </div>
-                    <p className="mt-2 text-[11px] leading-relaxed text-neutral-300">
-                      "Your Reddit CTR is 3× higher than paid Meta. Shift 20% budget to organic community posts."
-                    </p>
-                    <div className="mt-2 flex gap-2">
-                      <span className="rounded bg-teal-500/15 px-1.5 py-0.5 text-[9px] text-teal-400">
-                        92% confidence
-                      </span>
-                      <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] text-amber-400">
-                        +15% CTR
-                      </span>
-                    </div>
-                  </motion.div>
-
-                  {/* Rocket Core */}
-                  <div className="layer-rocket absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <motion.div
-                      className="glow-pulse grid h-20 w-20 place-items-center rounded-full bg-gradient-to-tr from-amber-600 to-amber-400 shadow-2xl shadow-amber-500/30"
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Rocket className="h-10 w-10 text-white" />
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
+              <Interactive3DScene />
             </motion.div>
           </div>
         </section>

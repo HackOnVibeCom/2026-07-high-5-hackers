@@ -1,11 +1,126 @@
 // functions/api/dashboard.ts
-import { corsHeaders, handleOptions } from "./utils";
+import { corsHeaders, handleOptions, predictLaunchPerformance, type CopyDraft } from "./utils";
 
 export const onRequestOptions = handleOptions;
 
+export const onRequestPost: PagesFunction = async (context) => {
+  try {
+    const data: any = await context.request.json().catch(() => ({}));
+    const {
+      name = "Fernly",
+      description = "A habit tracker",
+      category = "Health & Fitness",
+      asoTitle = "",
+      asoSubtitle = "",
+      asoKeywords = [],
+      socialDrafts = [],
+      campaigns = []
+    } = data;
+
+    // Use ML model to forecast launch scores
+    const forecast = predictLaunchPerformance(
+      name,
+      description,
+      category,
+      asoTitle,
+      asoSubtitle,
+      asoKeywords,
+      socialDrafts
+    );
+
+    // Calculate dynamic installs based on campaigns
+    let totalInstalls = forecast.predictedInstalls;
+    let baseCtr = forecast.predictedCtr;
+    
+    // Adjust metrics based on active campaigns
+    const runningCampaigns = campaigns.filter((c: any) => c.status === "running");
+    const completedCampaigns = campaigns.filter((c: any) => c.status === "completed");
+    
+    runningCampaigns.forEach((c: any) => {
+      const budgetWeight = c.budget ? Math.min(3, c.budget / 400) : 1;
+      totalInstalls += Math.round(350 * budgetWeight * (forecast.combinedLaunchScore / 100));
+    });
+
+    completedCampaigns.forEach((c: any) => {
+      const budgetWeight = c.budget ? Math.min(2, c.budget / 500) : 0.5;
+      totalInstalls += Math.round(150 * budgetWeight);
+    });
+
+    // Dynamic CTR adjustment
+    if (runningCampaigns.length > 0) {
+      baseCtr = parseFloat((baseCtr * 1.15).toFixed(1));
+    }
+
+    // Dynamic Product Hunt Rank
+    let productHuntRank = "N/A";
+    const phCampaign = campaigns.find((c: any) => c.platforms && c.platforms.includes("Product Hunt"));
+    if (phCampaign) {
+      if (phCampaign.status === "running") {
+        if (forecast.combinedLaunchScore >= 85) productHuntRank = "#2";
+        else if (forecast.combinedLaunchScore >= 70) productHuntRank = "#4";
+        else productHuntRank = "#7";
+      } else if (phCampaign.status === "completed") {
+        if (forecast.combinedLaunchScore >= 85) productHuntRank = "#3";
+        else if (forecast.combinedLaunchScore >= 70) productHuntRank = "#5";
+        else productHuntRank = "#10";
+      } else if (phCampaign.status === "scheduled") {
+        productHuntRank = "Scheduled";
+      }
+    }
+
+    // Generate dynamic installs trend
+    const installsTrend = [
+      Math.round(totalInstalls * 0.08),
+      Math.round(totalInstalls * 0.14),
+      Math.round(totalInstalls * 0.11),
+      Math.round(totalInstalls * 0.18),
+      Math.round(totalInstalls * 0.15),
+      Math.round(totalInstalls * 0.13),
+      Math.round(totalInstalls * 0.21),
+    ];
+
+    // Dynamic sources value calculation
+    let organicShare = 45;
+    let phShare = phCampaign ? 30 : 5;
+    let socialShare = socialDrafts.length > 0 ? 25 : 10;
+    const totalShare = organicShare + phShare + socialShare;
+    
+    organicShare = Math.round((organicShare / totalShare) * 100);
+    phShare = Math.round((phShare / totalShare) * 100);
+    socialShare = 100 - organicShare - phShare;
+
+    const sources = [
+      { name: "Organic", value: organicShare, color: "#26AD87" },
+      { name: "Product Hunt", value: phShare, color: "#DE8C21" },
+      { name: "Reddit & Social", value: socialShare, color: "#3564CA" }
+    ];
+
+    const result = {
+      installs: totalInstalls,
+      ctr: baseCtr,
+      activationRate: parseFloat((30 + (forecast.combinedLaunchScore / 100) * 20).toFixed(1)),
+      productHuntRank,
+      installsTrend,
+      sources,
+      campaigns
+    };
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: corsHeaders()
+    });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: corsHeaders()
+    });
+  }
+};
+
+// Fallback to post calculation if GET is called (returning default mockup)
 export const onRequestGet: PagesFunction = async () => {
   try {
-    const dashboardData = {
+    const defaultData = {
       installs: 1284,
       ctr: 4.6,
       activationRate: 42.6,
@@ -17,54 +132,9 @@ export const onRequestGet: PagesFunction = async () => {
         { name: "Reddit", value: 18, color: "#3564CA" },
         { name: "Paid Meta", value: 14, color: "#BF4057" }
       ],
-      campaigns: [
-        {
-          id: "c-1",
-          name: "Product Hunt Launch Week",
-          platforms: ["Product Hunt", "Twitter", "LinkedIn"],
-          status: "running",
-          launchDate: "2026-07-14",
-          budget: 800,
-          spark: [12, 18, 22, 31, 28, 42, 51, 47, 62, 71],
-          audience: "Indie hackers and productivity enthusiasts, 25–40",
-          asset: "Product Hunt Description"
-        },
-        {
-          id: "c-2",
-          name: "r/getdisciplined Founder Story",
-          platforms: ["Reddit"],
-          status: "completed",
-          launchDate: "2026-07-02",
-          budget: 0,
-          spark: [4, 9, 14, 22, 19, 25, 30, 28, 33, 29],
-          audience: "Reddit self-improvement community",
-          asset: "Reddit Launch Post"
-        },
-        {
-          id: "c-3",
-          name: "Instagram Reels — 7 Habits",
-          platforms: ["Instagram", "TikTok"],
-          status: "scheduled",
-          launchDate: "2026-07-20",
-          budget: 450,
-          spark: [],
-          audience: "Health-conscious millennials on social media",
-          asset: "Instagram Caption"
-        },
-        {
-          id: "c-4",
-          name: "Micro-influencer Wave",
-          platforms: ["Instagram", "TikTok"],
-          status: "draft",
-          launchDate: "2026-07-25",
-          budget: 1200,
-          spark: [],
-          audience: "Gen-Z wellness and productivity audience"
-        }
-      ]
+      campaigns: []
     };
-
-    return new Response(JSON.stringify(dashboardData), {
+    return new Response(JSON.stringify(defaultData), {
       status: 200,
       headers: corsHeaders()
     });

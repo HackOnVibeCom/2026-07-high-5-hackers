@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useApp } from "../lib/store";
 import {
   LineChart,
@@ -15,11 +16,17 @@ import {
   Bar,
   CartesianGrid,
 } from "recharts";
-import { Lock } from "lucide-react";
+import { Lock, TrendingUp, BarChart3, PieChart as PieIcon, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
 });
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
+};
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
 
 const installsData = [
   { day: "Mon", installs: 82 },
@@ -44,6 +51,15 @@ const platforms = [
   { name: "TikTok", installs: 132 },
 ];
 
+const chartTooltipStyle = {
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.08)",
+  backgroundColor: "rgba(11,15,25,0.95)",
+  color: "#F3F4F6",
+  fontSize: 12,
+  backdropFilter: "blur(8px)",
+};
+
 function Analytics() {
   const campaigns = useApp((s) => s.campaigns);
   const unlocked = campaigns.some((c) => c.status === "running" || c.status === "completed");
@@ -51,11 +67,16 @@ function Analytics() {
 
   if (!unlocked) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center text-center">
-        <div className="grid h-12 w-12 place-items-center rounded-full bg-neutral-100 text-neutral-500">
-          <Lock className="h-5 w-5" />
+      <motion.div
+        className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center text-center"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/5 border border-white/10 text-neutral-400">
+          <Lock className="h-6 w-6" />
         </div>
-        <h1 className="mt-4 font-display text-2xl font-semibold text-neutral-900">
+        <h1 className="mt-5 font-display text-2xl font-semibold text-neutral-900">
           Analytics is warming up.
         </h1>
         <p className="mt-2 text-sm text-neutral-600">
@@ -63,75 +84,88 @@ function Analytics() {
         </p>
         <Link
           to="/campaigns"
-          className="mt-6 inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-600 shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
         >
           Go to campaigns
         </Link>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm text-neutral-500">Analytics</p>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900">
+      <motion.header
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <Activity className="h-4 w-4" />
+          </div>
+          <p className="text-sm text-neutral-500">Analytics</p>
+        </div>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-neutral-900">
           What worked, why, and what to do next.
         </h1>
         {filter && (
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-900">
-            Filtered by: <span className="font-mono">{filter}</span>
-            <button onClick={() => setFilter(null)} className="text-amber-800 hover:underline">
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-xs text-amber-400">
+            Filtered by: <span className="font-mono font-bold">{filter}</span>
+            <button onClick={() => setFilter(null)} className="text-amber-300 hover:underline">
               clear
             </button>
           </div>
         )}
-      </header>
+      </motion.header>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <Metric label="Downloads" value="4,286" delta="+22.4%" positive />
-        <Metric label="Retention (D7)" value="38.1%" delta="+1.8%" positive />
-        <Metric label="CTR" value="4.6%" delta="-14.2%" />
-        <Metric label="Conversion" value="12.3%" delta="+3.4%" positive />
-        <Metric label="Campaign ROI" value="2.7×" delta="+0.4×" positive />
-      </section>
+      {/* Metrics Row */}
+      <motion.section
+        className="grid grid-cols-2 gap-3 sm:grid-cols-5"
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+      >
+        <Metric icon={<TrendingUp className="h-3.5 w-3.5" />} label="Downloads" value="4,286" delta="+22.4%" positive />
+        <Metric icon={<BarChart3 className="h-3.5 w-3.5" />} label="Retention (D7)" value="38.1%" delta="+1.8%" positive />
+        <Metric icon={<Activity className="h-3.5 w-3.5" />} label="CTR" value="4.6%" delta="-14.2%" />
+        <Metric icon={<PieIcon className="h-3.5 w-3.5" />} label="Conversion" value="12.3%" delta="+3.4%" positive />
+        <Metric icon={<TrendingUp className="h-3.5 w-3.5" />} label="Campaign ROI" value="2.7×" delta="+0.4×" positive />
+      </motion.section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-neutral-200 bg-white p-5 lg:col-span-2">
-          <h3 className="text-sm font-medium text-neutral-900">Installs — last 7 days</h3>
+      {/* Charts Row */}
+      <motion.section
+        className="grid gap-4 lg:grid-cols-3"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 lg:col-span-2">
+          <h3 className="text-sm font-semibold text-neutral-900">Installs — last 7 days</h3>
           <p className="text-xs text-neutral-500">
             Total 1,284 · Tuesday was your Product Hunt spike.
           </p>
-          <div className="mt-4 h-64">
+          <div className="mt-5 h-64">
             <ResponsiveContainer>
               <LineChart data={installsData}>
-                <CartesianGrid stroke="#E3E5E8" strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  stroke="#7B828E"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis stroke="#7B828E" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip
-                  cursor={{ stroke: "#CDD0D5" }}
-                  contentStyle={{ borderRadius: 8, border: "1px solid #E3E5E8", fontSize: 12 }}
-                />
+                <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="day" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{ stroke: "rgba(222,140,33,0.3)" }} contentStyle={chartTooltipStyle} />
                 <Line
                   type="monotone"
                   dataKey="installs"
-                  stroke="#3564CA"
+                  stroke="#DE8C21"
                   strokeWidth={2.5}
-                  dot={{ r: 3, fill: "#3564CA" }}
+                  dot={{ r: 4, fill: "#DE8C21", strokeWidth: 2, stroke: "rgba(11,15,25,0.8)" }}
+                  activeDot={{ r: 6, fill: "#DE8C21", stroke: "#fff", strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-white p-5">
-          <h3 className="text-sm font-medium text-neutral-900">Traffic sources</h3>
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+          <h3 className="text-sm font-semibold text-neutral-900">Traffic sources</h3>
           <p className="text-xs text-neutral-500">Click a slice to drill down.</p>
           <div className="mt-4 h-48">
             <ResponsiveContainer>
@@ -139,73 +173,60 @@ function Analytics() {
                 <Pie
                   data={sources}
                   dataKey="value"
-                  innerRadius={40}
-                  outerRadius={70}
-                  paddingAngle={2}
+                  innerRadius={44}
+                  outerRadius={74}
+                  paddingAngle={3}
                   onClick={(d: { name?: string }) => d?.name && setFilter(d.name)}
                 >
                   {sources.map((s) => (
                     <Cell key={s.name} fill={s.color} stroke="none" style={{ cursor: "pointer" }} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: 8, border: "1px solid #E3E5E8", fontSize: 12 }}
-                />
+                <Tooltip contentStyle={chartTooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-3 space-y-1.5">
             {sources.map((s) => (
               <li key={s.name} className="flex items-center gap-2 text-xs">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
                 <span className="flex-1 text-neutral-700">{s.name}</span>
                 <span className="font-mono text-neutral-500">{s.value}%</span>
               </li>
             ))}
           </ul>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-5">
-        <h3 className="text-sm font-medium text-neutral-900">Top-performing platforms</h3>
+      {/* Platforms */}
+      <motion.section
+        className="rounded-2xl border border-neutral-200 bg-white p-6"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        <h3 className="text-sm font-semibold text-neutral-900">Top-performing platforms</h3>
         <p className="text-xs text-neutral-500">
           Reddit is out-performing paid Meta 3:1 this week.
         </p>
-        <div className="mt-4 h-64">
+        <div className="mt-5 h-64">
           <ResponsiveContainer>
             <BarChart data={platforms} layout="vertical" margin={{ left: 24 }}>
-              <CartesianGrid stroke="#E3E5E8" strokeDasharray="3 3" horizontal={false} />
-              <XAxis
-                type="number"
-                stroke="#7B828E"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                stroke="#7B828E"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                width={100}
-              />
-              <Tooltip
-                cursor={{ fill: "#F1F2F3" }}
-                contentStyle={{ borderRadius: 8, border: "1px solid #E3E5E8", fontSize: 12 }}
-              />
+              <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis type="category" dataKey="name" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} width={100} />
+              <Tooltip cursor={{ fill: "rgba(222,140,33,0.05)" }} contentStyle={chartTooltipStyle} />
               <Bar
                 dataKey="installs"
                 fill="#DE8C21"
-                radius={[0, 6, 6, 0]}
+                radius={[0, 8, 8, 0]}
                 onClick={(d: { name?: string }) => d?.name && setFilter(d.name)}
                 style={{ cursor: "pointer" }}
               />
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 }
@@ -215,21 +236,29 @@ function Metric({
   value,
   delta,
   positive,
+  icon,
 }: {
   label: string;
   value: string;
   delta: string;
   positive?: boolean;
+  icon?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="text-xs text-neutral-500">{label}</div>
-      <div className="mt-1 font-display text-2xl font-semibold text-neutral-900">{value}</div>
+    <motion.div
+      variants={fadeUp}
+      className="rounded-2xl border border-neutral-200 bg-white p-4 transition-all hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5"
+    >
+      <div className="flex items-center gap-2">
+        {icon && <span className="text-neutral-500">{icon}</span>}
+        <span className="text-xs text-neutral-500">{label}</span>
+      </div>
+      <div className="mt-1.5 font-display text-2xl font-bold text-neutral-900">{value}</div>
       <div
-        className={`mt-1 inline-flex rounded px-1.5 py-0.5 font-mono text-[11px] ${positive ? "bg-teal-100 text-teal-800" : "bg-rose-100 text-rose-800"}`}
+        className={`mt-1.5 inline-flex rounded-md px-2 py-0.5 font-mono text-[11px] font-semibold ${positive ? "bg-teal-100 text-teal-800" : "bg-rose-100 text-rose-800"}`}
       >
         {delta}
       </div>
-    </div>
+    </motion.div>
   );
 }

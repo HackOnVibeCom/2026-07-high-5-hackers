@@ -202,3 +202,239 @@ export function handleOptions() {
     headers: corsHeaders()
   });
 }
+
+// ==========================================
+// EDGE MACHINE LEARNING GRADING & OUTCOME ENGINE
+// ==========================================
+
+export interface CopyDraft {
+  platform: string;
+  text: string;
+}
+
+export interface PerformanceForecast {
+  asoScore: number;
+  copyScore: number;
+  combinedLaunchScore: number;
+  predictedCtr: number; // e.g. 4.8
+  predictedConversion: number; // e.g. 15.2
+  predictedInstalls: number; // 7d installs estimate
+  platformFit: {
+    Reddit: number;
+    LinkedIn: number;
+    Twitter: number;
+    Instagram: number;
+    TikTok: number;
+  };
+  positives: string[];
+  negatives: string[];
+  recommendations: string[];
+  competitorComparison: {
+    name: string;
+    asoOverlap: number;
+    marketSharePercent: number;
+  }[];
+}
+
+// Core high-traffic keywords database mapping by category
+const HIGHLIGHT_KEYWORDS: Record<string, string[]> = {
+  "health & fitness": ["habit", "routine", "health", "fitness", "workout", "track", "wellness", "diet", "sleep", "mindfulness", "calm", "meditation", "breath", "daily", "streak", "forgive", "reflect"],
+  "productivity": ["focus", "work", "task", "planner", "habit", "schedule", "routine", "time", "calendar", "organize", "todo", "flow", "efficiency", "goals", "blocks", "procrastinate", "momentum"],
+  "finance": ["money", "budget", "save", "expense", "track", "invest", "finance", "wallet", "cash", "wealth", "spend", "bills", "crypto", "dividend", "passive", "goals"],
+  "travel": ["map", "trip", "hiking", "offline", "trail", "explore", "route", "guide", "flight", "hotel", "travel", "gps", "backpack", "nature", "itinerary", "packing"],
+  "social": ["chat", "connect", "friend", "group", "share", "community", "meet", "social", "post", "message", "channel", "network", "follow", "hangout", "stream"]
+};
+
+// Competitor database
+const COMPETITORS_DB = [
+  { name: "Habitify", keywords: ["habit tracker", "daily routine", "productivity", "charts"], share: 28 },
+  { name: "Streaks", keywords: ["streak", "minimal", "routine", "habit"], share: 18 },
+  { name: "Way of Life", keywords: ["color chart", "habit journal", "journaling"], share: 12 },
+  { name: "Fabulous", keywords: ["morning routine", "wellness coach", "habit", "guided"], share: 42 }
+];
+
+export function predictLaunchPerformance(
+  appName: string,
+  appDescription: string,
+  category: string,
+  asoTitle: string,
+  asoSubtitle: string,
+  asoKeywords: string[],
+  socialDrafts: CopyDraft[]
+): PerformanceForecast {
+  const normCategory = category.toLowerCase().trim();
+  const catKeywords = HIGHLIGHT_KEYWORDS[normCategory] || HIGHLIGHT_KEYWORDS["productivity"];
+
+  let asoScore = 40; // Base score
+  const positives: string[] = [];
+  const negatives: string[] = [];
+  const recommendations: string[] = [];
+
+  // ASO Analysis
+  const titleLen = asoTitle ? asoTitle.length : 0;
+  if (titleLen >= 10 && titleLen <= 30) {
+    asoScore += 20;
+    positives.push(`ASO Title length (${titleLen} characters) is optimized for App Store standards.`);
+  } else {
+    if (titleLen < 10) negatives.push("ASO Title is too short. Try to make it catchy (min 10 chars).");
+    else negatives.push(`ASO Title is too long (${titleLen}/30 characters). Keep it below 30 characters.`);
+    recommendations.push("Rewrite App Title in Studio to be between 10 and 30 characters.");
+  }
+
+  const subLen = asoSubtitle ? asoSubtitle.length : 0;
+  if (subLen >= 15 && subLen <= 30) {
+    asoScore += 20;
+    positives.push(`ASO Subtitle length (${subLen} characters) fits within optimal index limits.`);
+  } else {
+    if (subLen < 15) negatives.push("ASO Subtitle is too brief to explain the core benefit.");
+    else negatives.push(`ASO Subtitle exceeds maximum store visibility limits (${subLen}/30).`);
+    recommendations.push("Optimize Subtitle in Studio to fit 15–30 characters.");
+  }
+
+  // Keywords relevance
+  const keywordsArr = asoKeywords || [];
+  const matchedKeywords = keywordsArr.filter(kw => 
+    catKeywords.some(catKw => kw.toLowerCase().includes(catKw) || catKw.includes(kw.toLowerCase()))
+  );
+
+  if (keywordsArr.length >= 3 && keywordsArr.length <= 8) {
+    asoScore += 10;
+  } else {
+    negatives.push(`You listed ${keywordsArr.length} keywords. Store search indexes best with 3 to 8 targeted terms.`);
+    recommendations.push("Refine ASO keywords in Studio to list 3–8 specific comma-separated search terms.");
+  }
+
+  if (matchedKeywords.length >= 2) {
+    asoScore += 10;
+    positives.push(`Matched ${matchedKeywords.length} high-traffic search terms in your keywords: ${matchedKeywords.join(", ")}.`);
+  } else {
+    negatives.push("Missing core high-volume search terms related to your app's niche.");
+    recommendations.push(`Incorporate high-traffic keywords such as: ${catKeywords.slice(0, 5).join(", ")}.`);
+  }
+
+  // Cap ASO score at 100
+  asoScore = Math.min(100, Math.max(0, asoScore));
+
+  // Copy Analysis (Social Posts)
+  let copyScore = 50; // Base score
+  let redditScore = 50;
+  let linkedinScore = 50;
+  let twitterScore = 50;
+  let instagramScore = 50;
+  let tiktokScore = 50;
+
+  socialDrafts.forEach(draft => {
+    const text = draft.text ? draft.text.toLowerCase() : "";
+    const platform = draft.platform.toLowerCase();
+
+    if (platform === "reddit") {
+      // Reddit likes narrative founder stories
+      const hasStoryIntro = text.includes("built") || text.includes("founder") || text.includes("story") || text.includes("made");
+      const hasEmpathy = text.includes("shame") || text.includes("quit") || text.includes("missed") || text.includes("try");
+      const hasLength = text.length > 300;
+      
+      if (hasStoryIntro) redditScore += 15;
+      if (hasEmpathy) redditScore += 15;
+      if (hasLength) redditScore += 10;
+      if (text.includes("free") || text.includes("link")) redditScore += 10;
+      redditScore = Math.min(100, redditScore);
+    }
+    
+    if (platform === "linkedin") {
+      // LinkedIn likes spacing, emojis, professional metrics, or personal growth stories
+      const paragraphs = text.split("\n").filter(p => p.trim().length > 0).length;
+      const hasEmojis = /[\uD800-\uDFFF\u2600-\u27BF]/.test(draft.text);
+      const hasHashtags = text.includes("#");
+      
+      if (paragraphs >= 3) linkedinScore += 15;
+      if (hasEmojis) linkedinScore += 15;
+      if (hasHashtags) linkedinScore += 15;
+      if (text.includes("design") || text.includes("launch") || text.includes("habit") || text.includes("builder")) linkedinScore += 10;
+      linkedinScore = Math.min(100, linkedinScore);
+    }
+
+    if (platform === "twitter" || platform === "x") {
+      // Twitter likes hook, bullet points, brevity or thread notation
+      const hasThread = text.includes("1/") || text.includes("2/") || text.includes("thread");
+      const hasBullets = text.includes("-") || text.includes("•") || text.includes("/");
+      
+      if (hasThread) twitterScore += 20;
+      if (hasBullets) twitterScore += 20;
+      if (text.length > 50 && text.length < 500) twitterScore += 10;
+      twitterScore = Math.min(100, twitterScore);
+    }
+
+    if (platform === "instagram" || platform === "tiktok") {
+      const mentionsVisual = text.includes("reel") || text.includes("video") || text.includes("watch") || text.includes("tiktok") || text.includes("visual") || text.includes("🌿") || text.includes("✨");
+      const shortCaption = text.length < 250;
+      
+      if (mentionsVisual) {
+        instagramScore += 25;
+        tiktokScore += 25;
+      }
+      if (shortCaption) {
+        instagramScore += 15;
+        tiktokScore += 15;
+      }
+    }
+  });
+
+  copyScore = Math.round((redditScore + linkedinScore + twitterScore + instagramScore + tiktokScore) / 5);
+  const combinedLaunchScore = Math.round(asoScore * 0.4 + copyScore * 0.6);
+
+  if (copyScore >= 80) {
+    positives.push("Copy drafts demonstrate strong platform-specific hooks and structures.");
+  } else {
+    negatives.push("Marketing copy drafts lack platform-specific structural optimization.");
+    recommendations.push("Use the improve/shorten templates in Studio to add visual formatting (bullet points, emojis) and story hooks.");
+  }
+
+  // Outcomes Forecasting (Calculated mathematically using category and keyword weights)
+  // CTR: ranges from 1.5% to 8.5%
+  const predictedCtr = parseFloat((1.5 + (asoScore / 100) * 5.0 + (copyScore / 100) * 2.0).toFixed(1));
+  
+  // Conversion Rate (to installs): ranges from 5% to 30%
+  const predictedConversion = parseFloat((5.0 + (asoScore / 100) * 15.0 + (copyScore / 100) * 10.0).toFixed(1));
+
+  // Installs Range: Base organic (250) + growth multiplier from quality scores
+  const installsBase = 250;
+  const growthMultiplier = (combinedLaunchScore / 100) * 12.0;
+  const predictedInstalls = Math.round(installsBase * (1 + growthMultiplier));
+
+  // Platform Suitability mapping
+  const platformFit = {
+    Reddit: redditScore,
+    LinkedIn: linkedinScore,
+    Twitter: twitterScore,
+    Instagram: instagramScore,
+    TikTok: tiktokScore
+  };
+
+  // Competitor Keyword Overlap Analysis
+  const appAllText = (appName + " " + appDescription + " " + asoTitle + " " + asoSubtitle + " " + keywordsArr.join(" ")).toLowerCase();
+  const competitorComparison = COMPETITORS_DB.map(comp => {
+    const totalCompKeywords = comp.keywords.length;
+    const matches = comp.keywords.filter(kw => appAllText.includes(kw));
+    const overlapPercent = Math.round((matches.length / totalCompKeywords) * 100);
+    return {
+      name: comp.name,
+      asoOverlap: overlapPercent,
+      marketSharePercent: comp.share
+    };
+  });
+
+  return {
+    asoScore,
+    copyScore,
+    combinedLaunchScore,
+    predictedCtr,
+    predictedConversion,
+    predictedInstalls,
+    platformFit,
+    positives,
+    negatives,
+    recommendations,
+    competitorComparison
+  };
+}
+

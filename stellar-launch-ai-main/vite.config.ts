@@ -18,11 +18,13 @@ export default defineConfig({
     // Emit a static index.html shell and client-render every route.
     spa: { enabled: true },
   },
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://127.0.0.1:8788",
-        changeOrigin: true,
+  vite: {
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://127.0.0.1:8788",
+          changeOrigin: true,
+        },
       },
     },
   },

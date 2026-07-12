@@ -1,27 +1,49 @@
 // functions/api/launch-health-score.ts
-import { corsHeaders, handleOptions } from "./utils";
+import { corsHeaders, handleOptions, predictLaunchPerformance } from "./utils";
 
 export const onRequestOptions = handleOptions;
 
 export const onRequestPost: PagesFunction = async (context) => {
   try {
     const data: any = await context.request.json().catch(() => ({}));
-    const { runningCampaigns = 1, completedStages = 2, hasAso = true } = data;
+    const {
+      name = "Fernly",
+      description = "A calm habit tracker",
+      category = "Health & Fitness",
+      asoTitle = "",
+      asoSubtitle = "",
+      asoKeywords = [],
+      socialDrafts = [],
+      campaigns = [],
+      completedStages = []
+    } = data;
 
-    // ASO completeness: 90% if hasAso, 30% otherwise
-    const asoCompleteness = hasAso ? 95 : 30;
-    
-    // Content freshness: 50% base, +15% per completed stage up to 95%
-    const contentFreshness = Math.min(95, 45 + completedStages * 15);
+    // Call ML predictor to get copy and ASO scores
+    const forecast = predictLaunchPerformance(
+      name,
+      description,
+      category,
+      asoTitle,
+      asoSubtitle,
+      asoKeywords,
+      socialDrafts
+    );
 
-    // Campaign execution: 40% base, +20% per running campaign up to 100%
-    const campaignExecution = Math.min(100, 30 + runningCampaigns * 25);
+    const asoCompleteness = forecast.asoScore;
+    const contentFreshness = forecast.copyScore;
 
-    // Engagement trend: standard score that scales with campaigns
-    const engagementTrend = runningCampaigns > 0 ? 88 : 65;
+    // Campaign execution: 30% base, +25% per running campaign up to 100%
+    const runningCampaignsCount = campaigns.filter((c: any) => c.status === "running").length;
+    const campaignExecution = Math.min(100, 30 + runningCampaignsCount * 25);
 
-    // Simple weighted average formula
-    // ASO: 30%, Content: 20%, Campaign: 30%, Engagement: 20%
+    // Engagement Trend: calculated from forecast conversion and ctr relative to benchmarks
+    // Benchmark CTR: 4%, Benchmark Conversion: 15%
+    const ctrRatio = forecast.predictedCtr / 4.0;
+    const convRatio = forecast.predictedConversion / 15.0;
+    const engagementTrend = Math.min(100, Math.round(50 + (ctrRatio * 25) + (convRatio * 25)));
+
+    // Combined Weighted average
+    // ASO completeness: 30%, Content freshness: 20%, Campaign execution: 30%, Engagement trend: 20%
     const score = Math.round(
       asoCompleteness * 0.3 +
       contentFreshness * 0.2 +

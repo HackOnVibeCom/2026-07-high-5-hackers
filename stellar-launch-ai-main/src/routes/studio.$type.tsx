@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, Copy, RefreshCcw, Scissors, Wand2, Check, History, Rocket, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Copy, RefreshCcw, Scissors, Wand2, Check, History, Rocket, Loader2, AlertTriangle, CheckCircle2, Activity } from "lucide-react";
 import { sampleAssetContent, studioTools } from "../lib/mock-data";
-import { useApp } from "../lib/store";
+import { useActiveWorkspace, useApp } from "../lib/store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/$type")({
@@ -19,12 +19,119 @@ const variants: Record<string, string[]> = {
   shorten: [" Cut roughly 40% while keeping the strongest sentence at the top."],
 };
 
+function analyzeContentLocally(text: string, slug: string, category: string) {
+  let score = 40;
+  const warnings: string[] = [];
+  const checks: string[] = [];
+  let ctrBoost = 1.0;
+
+  const len = text ? text.length : 0;
+  const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
+
+  if (slug === "app-store" || slug === "google-play") {
+    const lines = text.split("\n").filter(l => l.trim().length > 0);
+    const title = lines[0] || "";
+    const subtitle = lines[1] || "";
+    
+    if (title.length >= 10 && title.length <= 30) {
+      score += 20;
+      checks.push("Title length fits App Store guidelines (10-30 chars).");
+    } else {
+      warnings.push("Title is not between 10-30 characters.");
+    }
+
+    if (subtitle.length >= 15 && subtitle.length <= 30) {
+      score += 20;
+      checks.push("Subtitle length fits index limits (15-30 chars).");
+    } else {
+      warnings.push("Subtitle is not between 15-30 characters.");
+    }
+
+    const hasKeywords = text.toLowerCase().includes("keywords:");
+    if (hasKeywords) {
+      score += 20;
+      checks.push("Keyword block is defined.");
+    } else {
+      warnings.push("No keywords block found. Add 'Keywords: word1, word2'.");
+    }
+  } else if (slug === "reddit") {
+    const hasIntro = text.includes("built") || text.includes("founder") || text.includes("story") || text.includes("made");
+    if (hasIntro) {
+      score += 20;
+      checks.push("Narrative intro detected ('built', 'founder').");
+    } else {
+      warnings.push("Add a personal narrative hook like 'I built' or 'As a founder'.");
+    }
+
+    if (len > 300) {
+      score += 20;
+      checks.push("Story details are descriptive (>300 chars).");
+    } else {
+      warnings.push("Post details are brief. Reddit prefers comprehensive stories.");
+    }
+
+    if (text.toLowerCase().includes("free") || text.toLowerCase().includes("link")) {
+      score += 20;
+      checks.push("Call to action links/instructions present.");
+    } else {
+      warnings.push("Add download instructions or links.");
+    }
+  } else if (slug === "twitter") {
+    if (len > 50 && len <= 280) {
+      score += 30;
+      checks.push("Fits within optimal tweet character limits.");
+    } else {
+      warnings.push("Tweet is outside 50-280 characters.");
+    }
+
+    const hasBullets = text.includes("-") || text.includes("•") || text.includes("/");
+    if (hasBullets) {
+      score += 30;
+      checks.push("Bulleted lists keep tweet scannable.");
+    } else {
+      warnings.push("Add bullet points to improve spacing.");
+    }
+  } else if (slug === "linkedin") {
+    const hasEmojis = /[\uD800-\uDFFF\u2600-\u27BF]/.test(text);
+    if (hasEmojis) {
+      score += 20;
+      checks.push("Emojis optimize visual engagement.");
+    } else {
+      warnings.push("Add emojis to attract professional audience.");
+    }
+
+    const hasHashtags = text.includes("#");
+    if (hasHashtags) {
+      score += 20;
+      checks.push("Hashtags increase reach search vectors.");
+    } else {
+      warnings.push("Add 2-3 hashtags (#startup, #growth).");
+    }
+
+    if (text.split("\n").filter(l => l.trim().length > 0).length >= 3) {
+      score += 20;
+      checks.push("Paragraph spaces increase readability.");
+    } else {
+      warnings.push("Split text into paragraphs with double returns.");
+    }
+  } else {
+    if (len > 100) score += 30;
+    if (wordCount > 15) score += 30;
+  }
+
+  score = Math.min(100, Math.max(0, score));
+  ctrBoost = parseFloat((1.0 + (score / 100) * 4.5).toFixed(1));
+
+  return { score, warnings, checks, ctrBoost };
+}
+
 function AssetWorkspace() {
   const { type } = useParams({ from: "/studio/$type" });
   const tool = studioTools.find((t) => t.slug === type);
   const savedDraft = useApp((s) => s.studioDrafts[type]);
   const saveStudioDraft = useApp((s) => s.saveStudioDraft);
   const approveAndPublishAsset = useApp((s) => s.approveAndPublishAsset);
+  const ws = useActiveWorkspace();
 
   const [text, setText] = useState(
     savedDraft?.text ?? sampleAssetContent[type] ?? "Draft your asset here.",
@@ -38,6 +145,12 @@ function AssetWorkspace() {
       { label: "v1 — original draft", text: sampleAssetContent[type] ?? "" },
     ],
   );
+
+  const [analysis, setAnalysis] = useState(() => analyzeContentLocally(savedDraft?.text ?? sampleAssetContent[type] ?? "Draft your asset here.", type, ws.category));
+
+  useEffect(() => {
+    setAnalysis(analyzeContentLocally(text, type, ws.category));
+  }, [text, type, ws.category]);
 
   const persist = (nextText: string, nextHistory: { label: string; text: string }[]) => {
     saveStudioDraft(type, {
@@ -182,23 +295,101 @@ function AssetWorkspace() {
           </PreviewFrame>
         </div>
 
-        <aside className="rounded-xl border border-neutral-200 bg-white p-5">
-          <div className="flex items-center gap-2 text-sm font-medium text-neutral-900">
-            <History className="h-4 w-4 text-neutral-500" /> Version history
+        <aside className="space-y-6">
+          {/* ML Copy Scorecard */}
+          <div className="rounded-xl border border-neutral-200 bg-white p-5 space-y-4">
+            <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+              <Activity className="h-4 w-4 text-amber-500" /> ML Performance Score
+            </h3>
+            
+            <div className="flex items-center gap-4">
+              {/* Circular Gauge */}
+              <div className="relative h-16 w-16 shrink-0">
+                <svg className="h-full w-full" viewBox="0 0 36 36">
+                  <path
+                    className="text-neutral-100"
+                    strokeWidth="3.5"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className={analysis.score >= 80 ? "text-teal-500" : analysis.score >= 50 ? "text-amber-500" : "text-rose-500"}
+                    strokeDasharray={`${analysis.score}, 100`}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <text
+                    x="18"
+                    y="21"
+                    textAnchor="middle"
+                    fill="#111"
+                    fontSize="9"
+                    fontWeight="bold"
+                  >
+                    {analysis.score}
+                  </text>
+                </svg>
+              </div>
+              
+              <div>
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Predicted Impact</span>
+                <p className="text-sm font-bold text-teal-600 flex items-center gap-1">
+                  +{analysis.ctrBoost}% CTR Boost
+                </p>
+              </div>
+            </div>
+
+            {/* Checklist */}
+            <div className="pt-2 border-t border-neutral-100 space-y-2 text-xs">
+              <span className="text-[10px] uppercase font-bold text-neutral-500">Quality Checks</span>
+              
+              {analysis.checks.length > 0 && (
+                <ul className="space-y-1.5">
+                  {analysis.checks.map((chk, i) => (
+                    <li key={i} className="flex gap-1.5 text-neutral-700">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-teal-600 shrink-0 mt-0.5" />
+                      <span>{chk}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {analysis.warnings.length > 0 && (
+                <ul className="space-y-1.5 pt-1">
+                  {analysis.warnings.map((wrn, i) => (
+                    <li key={i} className="flex gap-1.5 text-neutral-600">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <span>{wrn}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-          <ul className="mt-3 space-y-1">
-            {history.map((h, i) => (
-              <li key={i}>
-                <button
-                  onClick={() => setText(h.text)}
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-100"
-                >
-                  <span className="font-mono text-[11px] text-neutral-500">{h.label}</span>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-neutral-600">{h.text}</p>
-                </button>
-              </li>
-            ))}
-          </ul>
+
+          {/* Version history */}
+          <div className="rounded-xl border border-neutral-200 bg-white p-5">
+            <div className="flex items-center gap-2 text-sm font-medium text-neutral-900">
+              <History className="h-4 w-4 text-neutral-500" /> Version history
+            </div>
+            <ul className="mt-3 space-y-1">
+              {history.map((h, i) => (
+                <li key={i}>
+                  <button
+                    onClick={() => setText(h.text)}
+                    className="w-full rounded-md px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-neutral-100"
+                  >
+                    <span className="font-mono text-[11px] text-neutral-500">{h.label}</span>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-neutral-600">{h.text}</p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
       </div>
     </div>

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as StrategyRouteImport } from './routes/strategy'
+import { Route as SimulatorRouteImport } from './routes/simulator'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
@@ -29,6 +30,11 @@ const StudioRoute = StudioRouteImport.update({
 const StrategyRoute = StrategyRouteImport.update({
   id: '/strategy',
   path: '/strategy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimulatorRoute = SimulatorRouteImport.update({
+  id: '/simulator',
+  path: '/simulator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/onboarding': typeof OnboardingRoute
+  '/simulator': typeof SimulatorRoute
   '/strategy': typeof StrategyRoute
   '/studio': typeof StudioRouteWithChildren
   '/campaigns/$id': typeof CampaignsIdRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/discover': typeof DiscoverRoute
   '/onboarding': typeof OnboardingRoute
+  '/simulator': typeof SimulatorRoute
   '/strategy': typeof StrategyRoute
   '/studio': typeof StudioRouteWithChildren
   '/campaigns/$id': typeof CampaignsIdRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRouteWithChildren
   '/discover': typeof DiscoverRoute
   '/onboarding': typeof OnboardingRoute
+  '/simulator': typeof SimulatorRoute
   '/strategy': typeof StrategyRoute
   '/studio': typeof StudioRouteWithChildren
   '/campaigns/$id': typeof CampaignsIdRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/discover'
     | '/onboarding'
+    | '/simulator'
     | '/strategy'
     | '/studio'
     | '/campaigns/$id'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/discover'
     | '/onboarding'
+    | '/simulator'
     | '/strategy'
     | '/studio'
     | '/campaigns/$id'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/discover'
     | '/onboarding'
+    | '/simulator'
     | '/strategy'
     | '/studio'
     | '/campaigns/$id'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRouteWithChildren
   DiscoverRoute: typeof DiscoverRoute
   OnboardingRoute: typeof OnboardingRoute
+  SimulatorRoute: typeof SimulatorRoute
   StrategyRoute: typeof StrategyRoute
   StudioRoute: typeof StudioRouteWithChildren
 }
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/strategy'
       fullPath: '/strategy'
       preLoaderRoute: typeof StrategyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulator': {
+      id: '/simulator'
+      path: '/simulator'
+      fullPath: '/simulator'
+      preLoaderRoute: typeof SimulatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRouteWithChildren,
   DiscoverRoute: DiscoverRoute,
   OnboardingRoute: OnboardingRoute,
+  SimulatorRoute: SimulatorRoute,
   StrategyRoute: StrategyRoute,
   StudioRoute: StudioRouteWithChildren,
 }

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { studioTools } from "../lib/mock-data";
 import {
   AppWindow,
@@ -13,6 +14,7 @@ import {
   Check,
   Sparkles,
   Loader2,
+  Wand2,
 } from "lucide-react";
 import { useApp, useActiveWorkspace } from "../lib/store";
 import { toast } from "sonner";
@@ -35,6 +37,12 @@ const toneBg: Record<string, string> = {
   amber: "bg-amber-100 text-amber-800",
   rose: "bg-rose-100 text-rose-800",
 };
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const } },
+};
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 
 export const Route = createFileRoute("/studio")({
   component: Studio,
@@ -60,9 +68,19 @@ function Studio() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.header
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div>
-          <p className="text-sm text-neutral-500">Studio</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Wand2 className="h-4 w-4" />
+            </div>
+            <p className="text-sm text-neutral-500">Studio</p>
+          </div>
           <h1 className="font-display text-3xl font-semibold tracking-tight text-neutral-900">
             Marketing assets your agent can draft for you.
           </h1>
@@ -74,7 +92,7 @@ function Studio() {
         <button
           disabled={generatingPackage}
           onClick={handleGenerate}
-          className="inline-flex shrink-0 items-center gap-2 rounded-md bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:opacity-50"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 cursor-pointer"
         >
           {generatingPackage ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -83,42 +101,48 @@ function Studio() {
           )}
           Generate Launch Package
         </button>
-      </header>
+      </motion.header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+      >
         {studioTools.map((t) => {
           const Icon = iconFor[t.icon] ?? Layout;
           const hasDraft = !!drafts[t.slug];
           return (
-            <Link
-              key={t.slug}
-              to="/studio/$type"
-              params={{ type: t.slug }}
-              className="group rounded-xl border border-neutral-200 bg-white p-5 transition hover:border-neutral-300 hover:shadow-sm"
-            >
-              <div className="flex items-start justify-between">
-                <div
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-md ${toneBg[t.tone]}`}
-                >
-                  <Icon className="h-4 w-4" />
+            <motion.div key={t.slug} variants={fadeUp}>
+              <Link
+                to="/studio/$type"
+                params={{ type: t.slug }}
+                className="group block rounded-2xl border border-neutral-200 bg-white p-6 transition-all duration-300 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5"
+              >
+                <div className="flex items-start justify-between">
+                  <div
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${toneBg[t.tone]} transition-transform group-hover:scale-110`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  {hasDraft && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 text-[11px] font-semibold text-teal-400">
+                      <Check className="h-3 w-3" /> Draft saved
+                    </span>
+                  )}
                 </div>
-                {hasDraft && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700">
-                    <Check className="h-3 w-3" /> Draft saved
-                  </span>
-                )}
-              </div>
-              <div className="mt-4 font-medium text-neutral-900">{t.name}</div>
-              <div className="mt-1 text-xs text-neutral-500">
-                Draft, regenerate, and copy in seconds.
-              </div>
-              <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-amber-800 opacity-0 transition group-hover:opacity-100">
-                {hasDraft ? "Continue editing" : "Open workspace"} →
-              </div>
-            </Link>
+                <div className="mt-5 font-display font-semibold text-neutral-900">{t.name}</div>
+                <div className="mt-1.5 text-xs text-neutral-500">
+                  Draft, regenerate, and copy in seconds.
+                </div>
+                <div className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-amber-500 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-1">
+                  {hasDraft ? "Continue editing" : "Open workspace"} →
+                </div>
+              </Link>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }
