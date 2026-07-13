@@ -10,11 +10,11 @@ Founders of newly launched mobile apps — supporting them "from launch day to y
 
 **3. Which countries are the expected buyers of this service?**
 
-_(not provided)_
+Primarily the large English-first app-startup markets — the United States, United Kingdom, Canada, Australia, and India — where the bulk of new consumer mobile apps launch and where App Store / Product Hunt launch culture is strongest. Fast-follow markets are Western Europe (Germany, France, Netherlands) and Southeast Asia (Singapore, Indonesia), since the product itself is region-agnostic: it's a web app, and the copy it generates can target any store locale.
 
 **4. Who are your competitors?**
 
-_(not provided)_
+Each competitor covers one slice of the launch journey rather than the whole of it: ASO/market-intelligence suites (Sensor Tower / data.ai, AppTweak, AppFollow) for store metadata and rankings; AI copywriting tools (Jasper, Copy.ai) for launch copy; social schedulers (Buffer, Hootsuite) for campaign publishing; launch communities and their tooling (Product Hunt) for visibility; and influencer marketplaces (Collabstr, Upfluence) for creator outreach. A founder today stitches four or five of these together — LaunchPilot AI's competition is really that patchwork of point tools plus spreadsheets.
 
 **5. What is your advantage?**
 

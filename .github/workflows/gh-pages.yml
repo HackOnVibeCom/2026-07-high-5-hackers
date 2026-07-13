@@ -5,32 +5,25 @@
 # gracefully to its built-in defaults. The full product (frontend + edge API)
 # deploys to Cloudflare Pages via deploy.yml — treat that as the primary URL.
 #
-# The configure-pages step below auto-enables Pages (Source = GitHub Actions)
-# on first run; no manual repo-settings step should be needed.
+# Deploys by pushing the built site to the `gh-pages` BRANCH (classic Pages
+# source). The previous "GitHub Actions" source required repo-admin rights to
+# enable Pages (actions/configure-pages enablement kept failing — team members
+# only have push access on this org repo); a gh-pages branch needs none.
 name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 concurrency:
   group: gh-pages
   cancel-in-progress: true
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Enable & configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -43,10 +36,11 @@ jobs:
         run: |
           npm ci || npm install
           npm run build
-      - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
+          # SPA fallback: GitHub Pages serves 404.html for unknown paths, so
+          # deep links into the client router keep working.
+          cp out/index.html out/404.html
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: stellar-launch-ai-main/out
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: stellar-launch-ai-main/out
