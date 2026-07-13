@@ -1,0 +1,16 @@
+{
+  "name": "LaunchPilot AI",
+  "short_name": "LaunchPilot",
+  "description": "Your AI growth agent — from launch day to your first 10,000 users.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#DE8C21",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
