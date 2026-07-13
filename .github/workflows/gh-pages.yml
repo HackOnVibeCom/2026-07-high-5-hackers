@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: "20"
       - name: Build static site
-        working-directory: stellar-launch-ai-main
+        working-directory: launchpilot-ai
         env:
           # Project sites live at https://<owner>.github.io/<repo>/ — the SPA
           # reads this at build time (vite base + router basepath).
@@ -43,4 +43,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: stellar-launch-ai-main/out
+          publish_dir: launchpilot-ai/out

@@ -1,5 +1,5 @@
 # Root-level ignores for the HackOnVibe team repo.
-# The app itself lives in stellar-launch-ai-main/ and has its own .gitignore too.
+# The app itself lives in launchpilot-ai/ and has its own .gitignore too.
 
 # Dependencies
 node_modules/

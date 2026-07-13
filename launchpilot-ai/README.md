@@ -95,7 +95,7 @@ static site the HackOnVibe CI publishes.
 
 This repo auto-deploys via `.github/workflows/deploy.yml` on push to `main`:
 
-1. CI detects the app in `stellar-launch-ai-main/`, runs `npm ci` + `npm run build`.
+1. CI detects the app in `launchpilot-ai/`, runs `npm ci` + `npm run build`.
 2. It publishes the first of `dist / build / out / .output/public` containing an
    `index.html` — here that's **`out/`**.
 3. Wrangler bundles Pages Functions from the `functions/` directory at the **repo
@@ -129,7 +129,7 @@ See [`functions/README.md`](./functions/README.md) for the backend/API contract.
 ## Project structure
 
 ```
-stellar-launch-ai-main/
+launchpilot-ai/
 ├── src/
 │   ├── routes/            # File-based routes (TanStack Router)
 │   ├── components/        # UI components (ui/ = shadcn primitives)

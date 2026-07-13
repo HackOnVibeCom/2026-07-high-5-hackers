@@ -50,7 +50,7 @@ Built by **Team High 5 Hackers** for the HackOnVibe hackathon.
                                 │ fetch /api/* (JSON)
 ┌───────────────────────────────▼─────────────────────────────────────┐
 │  Cloudflare Pages Functions (Web-standard fetch handlers, edge)     │
-│  stellar-launch-ai-main/functions/api/                              │
+│  launchpilot-ai/functions/api/                              │
 │   dashboard · launch-health-score · recommendations ·               │
 │   generate-content · assistant · competitors · communities ·        │
 │   influencers                                                       │
@@ -68,15 +68,15 @@ Built by **Team High 5 Hackers** for the HackOnVibe hackathon.
 - **AI:** OpenRouter (`anthropic/claude-3.5-sonnet` by default) with the
   deterministic engine as a guaranteed fallback.
 
-📖 Full details: [`stellar-launch-ai-main/README.md`](./stellar-launch-ai-main/README.md) ·
-API contract: [`stellar-launch-ai-main/functions/README.md`](./stellar-launch-ai-main/functions/README.md)
+📖 Full details: [`launchpilot-ai/README.md`](./launchpilot-ai/README.md) ·
+API contract: [`launchpilot-ai/functions/README.md`](./launchpilot-ai/functions/README.md)
 
 ## Quick start
 
 Requires **Node 20+**.
 
 ```bash
-cd stellar-launch-ai-main
+cd launchpilot-ai
 npm install
 npm run dev      # web on http://localhost:8080 · api on :8788 (proxied at /api)
 ```
@@ -88,7 +88,7 @@ behave identically.
 **Optional — live LLM output:**
 
 ```bash
-cd stellar-launch-ai-main
+cd launchpilot-ai
 cp .dev.vars.example .dev.vars   # then set OPENROUTER_API_KEY=...
 ```
 
@@ -98,7 +98,7 @@ Without a key everything still works via the deterministic engine.
 
 ```
 .
-├── stellar-launch-ai-main/   # The application (frontend + backend + scripts)
+├── launchpilot-ai/   # The application (frontend + backend + scripts)
 ├── functions/                # Deploy shims → re-export the app's API handlers
 │                             #   (the CI runs wrangler from the repo root)
 ├── .github/workflows/
